@@ -13,7 +13,7 @@ cd "$T"
 C=/mnt/d/Projects/ampm2/.wsl-cache   # downloaded on Windows (WSL may have no internet)
 if [ ! -x node/bin/node ]; then mkdir -p node && tar -xJf "$C/node.tar.xz" -C node --strip-components=1; fi
 export PATH="$T/node/bin:$T/bin:$PATH"
-PM2_PKG="${PM2_PKG:-$(ls -d /mnt/c/nvm/v*/node_modules/pm2 "/mnt/c/Program Files/nodejs/node_modules/pm2" "/mnt/c/Users/$USER/AppData/Roaming/npm/node_modules/pm2" 2>/dev/null | head -1)}"   # your Windows pm2 package
+PM2_PKG="${PM2_PKG:-$(ls -d /mnt/c/nvm/v*/node_modules/pm2 "/mnt/c/Program Files/nodejs/node_modules/pm2" "/mnt/c/Users/$USER/AppData/Roaming/npm/node_modules/pm2" 2>/dev/null | head -1 || true)}"   # your Windows pm2 package (ls fails on the paths that do not exist)
 if [ ! -x pm2/bin/pm2 ]; then cp -r "$PM2_PKG" "$T/pm2"; chmod +x "$T/pm2/bin/"*; fi   # pm2 is plain JS
 mkdir -p "$T/bin"; ln -sf "$T/pm2/bin/pm2" "$T/bin/pm2"
 if [ ! -x dotnet/dotnet ]; then mkdir -p dotnet && tar -xzf "$C/dotnet.tar.gz" -C dotnet; fi
@@ -34,3 +34,17 @@ sleep 5
 echo "pm2 $(pm2 -v) running in $PM2_HOME: $(ls "$PM2_HOME" | tr '\n' ' ')"
 AMPM2_SELFTEST_ACTIONS=1 AMPM2_PROFILE=wsltest "$T/dotnet/dotnet" /mnt/d/Projects/ampm2/publish-linux-test/ampm2.dll --selftest "$T/report.txt" || true
 cat "$T/report.txt"
+
+# in-app update (macOS path): the self-test stages a swap of a fake ampm2.app; check it once the process has exited
+S="$T/swap"; rm -rf "$S"; mkdir -p "$S"
+AMPM2_SELFTEST_SWAP="$S" AMPM2_PROFILE=wsltest "$T/dotnet/dotnet" /mnt/d/Projects/ampm2/publish-linux-test/ampm2.dll --selftest "$T/swap-report.txt" >/dev/null 2>&1 || true
+grep 'mac bundle' "$T/swap-report.txt" || echo "FAIL  mac bundle swap: no report"
+for i in $(seq 1 50); do [ -f "$S/relaunched" ] && break; sleep 0.2; done
+A="$S/Applications"
+if grep -q 'new build' "$A/ampm2.app/Contents/MacOS/ampm2" 2>/dev/null && [ "$(cat "$S/relaunched" 2>/dev/null)" = "--updated" ] \
+   && [ -z "$(ls -A "$A" | grep -v '^ampm2.app$')" ]; then
+  echo "PASS  mac bundle swapped after exit, reopened with --updated, staging removed"
+else
+  echo "FAIL  mac bundle swap: $(ls -A "$A" | tr '\n' ' ') relaunched=$(cat "$S/relaunched" 2>/dev/null)"
+fi
+rm -rf "$S"

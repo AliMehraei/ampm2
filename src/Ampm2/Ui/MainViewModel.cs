@@ -101,7 +101,10 @@ public sealed partial class MainViewModel : ObservableObject
         OpenSettingsCommand = new RelayCommand(() => SettingsOpen = true);
         CloseSettingsCommand = new RelayCommand(() => { SettingsOpen = false; Settings.Save(); });
         InitSaved();
-        OpenAboutCommand = new RelayCommand(() => { SettingsOpen = false; AboutOpen = true; App.EnsureMainWindowVisible(); });
+        OpenAboutCommand = new RelayCommand(() => { SettingsOpen = false; AboutOpen = true; App.EnsureMainWindowVisible(); _ = Update.CheckAsync(quiet: true); });
+        CheckUpdateCommand = new AsyncCommand(() => Update.CheckAsync());
+        InstallUpdateCommand = new AsyncCommand(() => Update.InstallAsync(App.ExitApp));
+        OpenReleaseCommand = new RelayCommand(() => OpenUrl(Update.ReleasePage));
         CloseAboutCommand = new RelayCommand(() => AboutOpen = false);
         OpenEmailCommand = new RelayCommand(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new RelayCommand(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
@@ -124,6 +127,11 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand OpenWebsiteCommand { get; }
     public ICommand OpenHelpCommand { get; }
     public ICommand CopyAboutCommand { get; }
+    /// <summary>About ▸ Updates: check GitHub, download, verify and install a newer release.</summary>
+    public UpdateModel Update { get; } = new();
+    public ICommand CheckUpdateCommand { get; }
+    public ICommand InstallUpdateCommand { get; }
+    public ICommand OpenReleaseCommand { get; }
     public bool HasGitHub => AppInfo.GitHubUrl.Length > 0;
     private bool _aboutOpen;
     public bool AboutOpen { get => _aboutOpen; set => Set(ref _aboutOpen, value); }

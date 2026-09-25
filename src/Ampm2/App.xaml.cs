@@ -29,6 +29,7 @@ public partial class App : Application
     {
         base.OnStartup(e);
         var args = e.Args;
+        Updater.Target = UpdateTarget.WindowsInstaller;
         DispatcherUnhandledException += (_, ex) =>
         {
             LogCrash(ex.Exception);
@@ -121,6 +122,8 @@ public partial class App : Application
         bool hidden = (AppSettings.StartMinimized || args.Contains("--autostart") || marker) && !args.Contains("--show");
         if (!hidden) ShowMainWindow();
         else Vm.SetVisible(false);
+
+        if (args.Contains("--updated")) Toast("Updated", $"ampm2 was updated to {AppInfo.Version}.", ToastKind.Success);
 
         await Vm.ConnectAsync();
         UpdateTray();

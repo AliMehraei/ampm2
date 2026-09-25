@@ -316,11 +316,17 @@ public static class HelpContent
             B("Reporting a problem", "About ▸ Copy details copies the version, platform and pm2 version. Paste them into a GitHub issue or an email."),
             B("Error log", "Unexpected errors are written to %APPDATA%\\ampm2\\errors.log.", W),
         }),
-        ("about", "About and license", "Version, author and license.", new[]
+        ("about", "About, updates and license", "Version, updates, author and license.", new[]
         {
             P("About shows the version, platform, runtime, author, email, website, GitHub page and license. Copy details copies them for bug reports."),
             B("Open About", "Choose About ampm2 from the ⋯ menu or the tray menu, or use the About link at the bottom of Settings.", W),
             B("Open About", "Click the ⓘ button, choose ampm2 ▸ About ampm2, or use the menu bar icon.", M),
+            H("Updates"),
+            P("Opening About checks GitHub for a newer release (at most every 30 minutes; Check again checks now). When one is available, Install … and restart updates ampm2 in place. Your pm2 processes keep running while ampm2 updates."),
+            B("Checked before installing", "The download is compared with the release's SHA256 checksums. A damaged or unverifiable download is refused, and nothing is installed."),
+            B("How it installs", "ampm2 closes, the new installer runs silently (Windows asks for administrator permission first, unless ampm2 already runs as administrator), and ampm2 reopens. Your settings and the tray and startup options are kept.", W),
+            B("How it installs", "ampm2 unpacks the new ampm2.app next to the current one, closes, swaps the two and reopens. It needs write access to the folder ampm2.app is in (normally Applications).", M),
+            B("If it cannot install", "Release notes opens the release page, where you can download the new version and install it by hand."),
             H("License"),
             P("ampm2 is licensed under the PolyForm Noncommercial License 1.0.0 with an additional permission for education."),
             B("Free", "Personal and other non-commercial use."),

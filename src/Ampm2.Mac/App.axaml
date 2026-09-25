@@ -322,6 +322,20 @@
         <Style Selector="Button.danger-hover:pointerover PathIcon"><Setter Property="Foreground" Value="#E0484E"/></Style>
         <Style Selector="Button.ghost"><Setter Property="Foreground" Value="{DynamicResource Accent}"/></Style>
 
+        <!-- slim progress bar in the brand gradient -->
+        <Style Selector="ProgressBar.slim">
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="MinHeight" Value="4"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Line}"/>
+            <Setter Property="Foreground">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#6366F1" Offset="0"/>
+                    <GradientStop Color="#9B5CF6" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+
         <!-- header stat tiles -->
         <Style Selector="Border.stat">
             <Setter Property="Background" Value="{DynamicResource Surface}"/>

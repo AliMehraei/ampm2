@@ -77,7 +77,10 @@ public sealed class MainViewModel : ObservableObject
         SetStreamCommand = new Command(p => { LogStream = p as string ?? "all"; RaiseSegments(); });
         OpenSettingsCommand = new Command(() => { AboutOpen = false; SettingsOpen = true; });
         CloseSettingsCommand = new Command(() => { SettingsOpen = false; Settings.Save(); ApplyIntervals(); });
-        OpenAboutCommand = new Command(() => { SettingsOpen = false; AboutOpen = true; });
+        OpenAboutCommand = new Command(() => { SettingsOpen = false; AboutOpen = true; _ = Update.CheckAsync(quiet: true); });
+        CheckUpdateCommand = Command.Async(() => Update.CheckAsync());
+        InstallUpdateCommand = Command.Async(() => Update.InstallAsync(App.Quit));
+        OpenReleaseCommand = new Command(() => OpenUrl(Update.ReleasePage));
         CloseAboutCommand = new Command(() => AboutOpen = false);
         OpenEmailCommand = new Command(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new Command(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
@@ -522,6 +525,11 @@ public sealed class MainViewModel : ObservableObject
     public Command OpenWebsiteCommand { get; }
     public Command OpenHelpCommand { get; }
     public Command CopyAboutCommand { get; }
+    /// <summary>About ▸ Updates: check GitHub, download, verify and install a newer release.</summary>
+    public UpdateModel Update { get; } = new();
+    public Command CheckUpdateCommand { get; }
+    public Command InstallUpdateCommand { get; }
+    public Command OpenReleaseCommand { get; }
     public Command DialogOkCommand { get; }
     public Command DialogCancelCommand { get; }
     public Command AddCommand { get; }

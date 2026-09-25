@@ -53,6 +53,7 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Ampm2.Sys.Updater.Target = Ampm2.Sys.UpdateTarget.MacBundle;
         var settings = MacSettings.Load();
         ApplyTheme(settings.Theme);
         Vm = new MainViewModel(settings);
@@ -63,6 +64,7 @@ public partial class App : Application
             desktop.MainWindow = _window;
             _window.Show();
             desktop.Exit += (_, _) => settings.Save();
+            if (desktop.Args?.Contains("--updated") == true) Toast("Updated", $"ampm2 was updated to {AppInfo.Version}.", ToastKind.Success);
         }
         // Dock icon clicked while the window is hidden
         if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime act)

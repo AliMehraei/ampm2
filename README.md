@@ -160,6 +160,16 @@ Both apps have an About section (Windows: ⋯ menu, Settings footer, tray menu; 
 menu bar icon) with the author, e-mail, version, platform and runtime, and **Copy details** for bug reports.
 Its text, including the GitHub link, comes from `src/Ampm2.Core/AppInfo.cs`.
 
+### Updates
+
+About also checks GitHub for a newer release, and **Install … and restart** updates ampm2 in place. Your pm2
+processes keep running. The download is checked against the release's `SHA256SUMS.txt` before anything is
+installed, so a release must ship that file. Windows runs the new installer silently
+(`/SILENT /RELAUNCH`) once ampm2 has closed. macOS unpacks the new `ampm2.app` next to the running one and swaps
+them after ampm2 quits. The code is in `src/Ampm2.Core/Sys/Updater.cs`. For testing, `AMPM2_UPDATE_FEED` points
+the check at another release JSON (a URL or a local file), and `AMPM2_UPDATE_INSTALLER_ARGS` adds installer
+switches such as `/CURRENTUSER /DIR=...`.
+
 ## Testing without touching your pm2
 
 pm2 hard-codes the pipe names on Windows, so `tools\test-daemon.js` runs a **real** pm2 daemon (your installed

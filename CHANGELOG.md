@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Updates in About**, in both apps. Opening About checks GitHub for a newer release; **Install … and restart** downloads it, checks it against the release's SHA256 checksums, installs it and reopens ampm2. Your pm2 processes keep running.
+  - Windows: the new installer runs silently and reopens ampm2 when it is done. It asks for administrator permission first, unless ampm2 already runs as administrator.
+  - macOS: the new ampm2.app is unpacked next to the current one and swapped in once ampm2 has closed.
+  - A download that does not match its checksum, or a release without checksums, is refused.
+
+### Changed
+- The Windows installer, when run silently, no longer installs missing prerequisites, since its prerequisites page was never shown. `/RELAUNCH` makes it reopen ampm2 when it is done.
+
 ## [1.3.0] - 2026-09-25
 
 ### Added

@@ -20,7 +20,7 @@ Parts that apply to one platform only are marked *(Windows)* or *(macOS)*.
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Where ampm2 keeps its files](#where-ampm2-keeps-its-files)
 - [Troubleshooting](#troubleshooting)
-- [About and license](#about-and-license)
+- [About, updates and license](#about-updates-and-license)
 
 ## Getting started
 
@@ -363,14 +363,23 @@ The Windows installer does the same checks on its Prerequisites page and install
 - **Reporting a problem**: About ▸ Copy details copies the version, platform and pm2 version. Paste them into a GitHub issue or an email.
 - **Error log** *(Windows)*: Unexpected errors are written to %APPDATA%\ampm2\errors.log.
 
-## About and license
+## About, updates and license
 
-*Version, author and license.*
+*Version, updates, author and license.*
 
 About shows the version, platform, runtime, author, email, website, GitHub page and license. Copy details copies them for bug reports.
 
 - **Open About** *(Windows)*: Choose About ampm2 from the ⋯ menu or the tray menu, or use the About link at the bottom of Settings.
 - **Open About** *(macOS)*: Click the ⓘ button, choose ampm2 ▸ About ampm2, or use the menu bar icon.
+
+### Updates
+
+Opening About checks GitHub for a newer release (at most every 30 minutes; Check again checks now). When one is available, Install … and restart updates ampm2 in place. Your pm2 processes keep running while ampm2 updates.
+
+- **Checked before installing**: The download is compared with the release's SHA256 checksums. A damaged or unverifiable download is refused, and nothing is installed.
+- **How it installs** *(Windows)*: ampm2 closes, the new installer runs silently (Windows asks for administrator permission first, unless ampm2 already runs as administrator), and ampm2 reopens. Your settings and the tray and startup options are kept.
+- **How it installs** *(macOS)*: ampm2 unpacks the new ampm2.app next to the current one, closes, swaps the two and reopens. It needs write access to the folder ampm2.app is in (normally Applications).
+- **If it cannot install**: Release notes opens the release page, where you can download the new version and install it by hand.
 
 ### License
 

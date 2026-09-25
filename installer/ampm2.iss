@@ -70,6 +70,8 @@ Type: files; Name: "{userprograms}\ampm2.lnk"
 Filename: "{app}\{#AppExe}"; Parameters: "--repoint-task"; Flags: runhidden waituntilterminated; StatusMsg: "Updating the elevated-launch task..."
 ; runasoriginaluser: ampm2 starts normally and elevates itself only if the pm2 daemon runs as administrator
 Filename: "{app}\{#AppExe}"; Description: "Launch ampm2"; Flags: nowait postinstall skipifsilent runasoriginaluser
+; an in-app update (About ▸ Install) runs silently with /RELAUNCH: reopen ampm2 when done
+Filename: "{app}\{#AppExe}"; Parameters: "--updated"; Flags: nowait runasoriginaluser; Check: RelaunchRequested
 
 [UninstallRun]
 ; the optional "start as administrator without a UAC prompt" task created from ampm2's Settings
@@ -81,6 +83,14 @@ var
   DownloadPage: TDownloadWizardPage;
   CbDotnet, CbNode, CbPm2: TNewCheckBox;
   HasDotnet, HasNode, HasPm2: Boolean;
+
+// ---------------- in-app update ----------------
+
+// ampm2's About ▸ Install runs this setup with /SILENT /RELAUNCH.
+function RelaunchRequested: Boolean;
+begin
+  Result := Pos('/RELAUNCH', UpperCase(GetCmdTail)) > 0;
+end;
 
 // ---------------- detection ----------------
 
@@ -210,7 +220,7 @@ begin
     if Result and WantPm2 and (not HasNode) and (not WantNode) then
       Result := MsgBox('pm2 needs Node.js, which is not installed. Continue anyway?', mbConfirmation, MB_YESNO) = IDYES;
   end
-  else if (CurPageID = wpReady) and WantDotnet then
+  else if (CurPageID = wpReady) and WantDotnet and (not WizardSilent) then
   begin
     DownloadPage.Clear;
     DownloadPage.Add('{#DotnetUrl}', 'windowsdesktop-runtime-10-win-x64.exe', '');
@@ -258,6 +268,8 @@ var
   Code: Integer;
   F, Npm: String;
 begin
+  // silent (in-app update or scripted): the prerequisites page was never shown, so install nothing unasked
+  if WizardSilent then Exit;
   WizardForm.ProgressGauge.Style := npbstMarquee;
   try
     if WantDotnet then

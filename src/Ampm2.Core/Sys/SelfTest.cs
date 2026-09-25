@@ -16,6 +16,12 @@ namespace Ampm2.Sys;
 /// </summary>
 public static class SelfTest
 {
+    /// <summary>IProgress that reports inline (Progress&lt;T&gt; posts to a thread-pool context, too late to assert on).</summary>
+    private sealed class SyncProgress(Action<double> report) : IProgress<double>
+    {
+        public void Report(double value) => report(value);
+    }
+
     public static async Task<int> RunAsync(string reportPath)
     {
         var sb = new StringBuilder();
@@ -50,6 +56,87 @@ public static class SelfTest
             Check("help guide topics", ok, $"{win.Count} Windows topics, {mac.Count} macOS topics");
             var md = Ampm2.Help.HelpContent.ToMarkdown();
             Check("help guide exports to Markdown", md.StartsWith("# ampm2 help") && md.Contains("## The Saved list"), $"{md.Length} characters");
+        }
+
+        // updater: release parsing, version order, package choice, checksum verification (local files, no network)
+        {
+            Check("update version parsing", Updater.ParseVersion("v1.10.0") > Updater.ParseVersion("1.9.3") && Updater.ParseVersion("1.4.0-beta") == new Version(1, 4, 0)
+                                            && Updater.ParseVersion("latest") == null && Updater.Current.Major >= 1, $"running {Updater.Current}");
+            var dir = Path.Combine(Path.GetTempPath(), "ampm2-selftest-update-" + Environment.ProcessId);
+            Directory.CreateDirectory(dir);
+            try
+            {
+                var next = new Version(Updater.Current.Major, Updater.Current.Minor + 1, 0);
+                var pkgName = Updater.PackageName(next);
+                var pkg = Path.Combine(dir, "src-" + pkgName);
+                File.WriteAllBytes(pkg, Enumerable.Range(0, 300_000).Select(i => (byte)(i * 7)).ToArray());
+                var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(pkg))).ToLowerInvariant();
+                var sums = Path.Combine(dir, "SHA256SUMS.txt");
+                File.WriteAllText(sums, $"{new string('0', 64)}  other-file.zip\n{hash}  {pkgName}\n");
+                string J(string s) => System.Text.Json.JsonSerializer.Serialize(s);
+                var json = $$"""
+                    {"tag_name":"v{{next.ToString(3)}}","name":"ampm2 {{next.ToString(3)}}","html_url":"https://example.invalid/r",
+                     "assets":[{"name":{{J(pkgName)}},"browser_download_url":{{J(pkg)}},"size":300000},
+                               {"name":"SHA256SUMS.txt","browser_download_url":{{J(sums)}},"size":10}]}
+                    """;
+                var rel = Updater.ParseRelease(json);
+                Check("update release parsed", rel.Version == next && rel.Version > Updater.Current && Updater.Package(rel)?.Name == pkgName && rel.Checksums != null,
+                      $"{rel.Title}, {rel.Assets.Count} assets, package {Updater.Package(rel)?.Name}");
+                Check("update checksum list lookup", Updater.ExpectedHash(File.ReadAllText(sums), pkgName) == hash && Updater.ExpectedHash(File.ReadAllText(sums), "missing.exe") == null);
+
+                double lastProgress = -5;
+                var got = await Updater.DownloadAsync(rel, new SyncProgress(p => lastProgress = p));
+                Check("update download verified", File.Exists(got) && new FileInfo(got).Length == 300_000 && Math.Abs(lastProgress - 1) < 1e-9, got);
+
+                File.WriteAllText(sums, $"{new string('a', 64)}  {pkgName}\n");
+                string err = "";
+                try { await Updater.DownloadAsync(rel); } catch (UpdateException ex) { err = ex.Message; }
+                Check("update refuses a damaged download", err.Contains("checksum") && !File.Exists(Path.Combine(Updater.DownloadDir, pkgName)), err);
+
+                var noSums = rel with { Assets = rel.Assets.Where(a => a.Name != "SHA256SUMS.txt").ToList() };
+                err = "";
+                try { await Updater.DownloadAsync(noSums); } catch (UpdateException ex) { err = ex.Message; }
+                Check("update refuses a release without checksums", err.Contains("no checksums"), err);
+            }
+            finally
+            {
+                try { Directory.Delete(dir, true); } catch { }
+                try { Directory.Delete(Updater.DownloadDir, true); } catch { }
+            }
+
+            // Unix only, opt-in: AMPM2_SELFTEST_SWAP=<empty folder>. Stages a real bundle swap of a fake
+            // <folder>/Applications/ampm2.app; the swap runs after this process exits (tools/wsl-test.sh checks it).
+            if (!OperatingSystem.IsWindows() && Environment.GetEnvironmentVariable("AMPM2_SELFTEST_SWAP") is { Length: > 0 } swapRoot)
+            {
+                var next = new Version(Updater.Current.Major, Updater.Current.Minor + 1, 0);
+                var installed = Path.Combine(swapRoot, "Applications", "ampm2.app");
+                Directory.CreateDirectory(Path.Combine(installed, "Contents", "MacOS"));
+                File.WriteAllText(Path.Combine(installed, "Contents", "MacOS", "ampm2"), "old build\n");
+                File.WriteAllText(Path.Combine(installed, "Contents", "Info.plist"), "<string>0.0.1</string>\n");
+                var zip = Path.Combine(swapRoot, "update.zip");
+                using (var z = System.IO.Compression.ZipFile.Open(zip, System.IO.Compression.ZipArchiveMode.Create))
+                {
+                    var plist = z.CreateEntry("ampm2.app/Contents/Info.plist");
+                    using (var w = new StreamWriter(plist.Open())) w.Write($"<key>CFBundleShortVersionString</key><string>{next.ToString(3)}</string>\n");
+                    var exe = z.CreateEntry("ampm2.app/Contents/MacOS/ampm2");
+                    exe.ExternalAttributes = Convert.ToInt32("100755", 8) << 16;
+                    using (var w = new StreamWriter(exe.Open())) w.Write($"#!/bin/sh\n# new build\necho \"$@\" > \"{swapRoot}/relaunched\"\n");
+                }
+                Updater.Target = UpdateTarget.MacBundle;
+                Environment.SetEnvironmentVariable("AMPM2_UPDATE_BUNDLE", installed);
+                string wrong = "";
+                try { Updater.StartInstall(zip, new UpdateRelease(new Version(next.Major, next.Minor + 5, 0), "x", "test", "", Array.Empty<UpdateAsset>())); }
+                catch (UpdateException ex) { wrong = ex.Message; }
+                Check("mac bundle swap refuses the wrong version", wrong.Contains("is not version"), wrong);
+                string err = "";
+                try { Updater.StartInstall(zip, new UpdateRelease(next, "v" + next, "test", "", Array.Empty<UpdateAsset>())); }
+                catch (Exception ex) { err = ex.Message; }
+                var stage = Path.Combine(swapRoot, "Applications", $".ampm2-update-{Environment.ProcessId}");
+                Check("mac bundle swap staged", err.Length == 0 && File.Exists(Path.Combine(stage, "ampm2.app", "Contents", "MacOS", "ampm2")) && File.Exists(Path.Combine(stage, "swap.sh")),
+                      err.Length > 0 ? err : stage);
+
+                Environment.SetEnvironmentVariable("AMPM2_UPDATE_BUNDLE", null);
+            }
         }
 
         // codec round trip, split across arbitrary chunk boundaries
