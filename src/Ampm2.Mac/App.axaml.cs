@@ -21,7 +21,35 @@ public partial class App : Application
     private static MainWindow? _window;
     public static bool Quitting { get; private set; }
 
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        // A tooltip stays attached to the button under the pointer; close it on click, before the UI changes.
+        Button.ClickEvent.AddClassHandler<Button>((b, _) => ToolTip.SetIsOpen(b, false), Avalonia.Interactivity.RoutingStrategies.Bubble, true);
+        // Never let an unexpected error close the app: report it, keep running.
+        Dispatcher.UIThread.UnhandledException += (_, e) => { ReportError(e.Exception); e.Handled = true; };
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => LogError(e.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (_, e) => { LogError(e.Exception); e.SetObserved(); };
+    }
+
+    /// <summary>Logs an unexpected error to errors.log and shows it (error toasts stay 9 s).</summary>
+    public static void ReportError(Exception ex)
+    {
+        LogError(ex);
+        Toast("Unexpected error", ex.Message + "\nDetails were written to errors.log (Settings shows the folder).", ToastKind.Error);
+    }
+
+    public static void LogError(Exception? ex)
+    {
+        if (ex == null) return;
+        try
+        {
+            System.IO.Directory.CreateDirectory(Ampm2.Sys.DataPaths.Dir);
+            System.IO.File.AppendAllText(System.IO.Path.Combine(Ampm2.Sys.DataPaths.Dir, "errors.log"),
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ampm2 {Ampm2.AppInfo.Version} {Ampm2.AppInfo.Platform}\n{ex}\n\n");
+        }
+        catch { }
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {

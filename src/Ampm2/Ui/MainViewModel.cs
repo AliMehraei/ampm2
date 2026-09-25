@@ -76,7 +76,8 @@ public sealed partial class MainViewModel : ObservableObject
         ResetCommand = new AsyncCommand(p => ActAsync(p, "reset"), p => IsConnected);
         FlushCommand = new AsyncCommand(p => FlushAsync(p), p => IsConnected);
         RestartAllCommand = new AsyncCommand(() => AllAsync("restart"), () => IsConnected && Items.Count > 0);
-        StopAllCommand = new AsyncCommand(() => AllAsync("stop"), () => IsConnected && Items.Count > 0);
+        StartAllCommand = new AsyncCommand(() => ActOnAsync(Items.Where(i => i.CanStart).ToList(), "start"), () => IsConnected && Items.Any(i => i.CanStart));
+        StopAllCommand = new AsyncCommand(() => AllAsync("stop"), () => IsConnected && Items.Any(i => i.CanStop));
         SaveCommand = new AsyncCommand(() => CliAsync("Saved", "Process list saved to dump.pm2.", "save"), () => IsConnected);
         ResurrectCommand = new AsyncCommand(() => CliAsync("Resurrected", "Saved processes restored.", "resurrect"), () => CanUseCli);
         StartDaemonCommand = new AsyncCommand(StartDaemonAsync, () => State == ConnState.NotRunning && CliTargetsSameDaemon);
@@ -348,6 +349,9 @@ public sealed partial class MainViewModel : ObservableObject
             else if (!i.IsOnline) i.ClearMetrics();
             i.Tick();
         }
+        long maxMem = 1;
+        foreach (var i in Items) if (i.Memory > maxMem) maxMem = i.Memory;
+        foreach (var i in Items) i.SetMemShare((double)i.Memory / maxMem);
         Selected?.BuildSparklines(360, 56);
         if (_sortKey is "cpu" or "mem") View.Refresh();
         RaiseTotals();
@@ -539,6 +543,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand ResetCommand { get; }
     public ICommand FlushCommand { get; }
     public ICommand RestartAllCommand { get; }
+    public ICommand StartAllCommand { get; }
     public ICommand StopAllCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand ResurrectCommand { get; }
@@ -615,7 +620,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (Settings.ConfirmDestructive && !await ConfirmAsync(verb == "stop" ? "Stop all processes?" : "Restart all processes?",
                 $"This will {verb} all {Items.Count} pm2 processes.", verb == "stop" ? "Stop all" : "Restart all", verb == "stop"))
             return;
-        await ActOnAsync(Items.ToList(), verb);
+        await ActOnAsync(verb == "stop" ? Items.Where(i => i.CanStop).ToList() : Items.ToList(), verb);
     }
 
     private async Task FlushAsync(object? p)

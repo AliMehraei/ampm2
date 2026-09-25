@@ -41,6 +41,7 @@ ampm2 talks to the pm2 daemon directly over pm2's own connection, so it stays li
 ### The window
 
 - **Header**: The connection status, the counters for online, stopped and errored processes, total CPU and memory, and the main buttons.
+- **Above the list**: Start all, Restart all and Stop all, and Refresh.
 - **Process list**: Everything pm2 runs. Switch to the Saved list with the tabs above it.
 - **Details pane**: Overview and logs of the selected process, or the definition of the selected saved app.
 - **Tray icon** *(Windows)*: ampm2 keeps running in the notification area when you close the window.
@@ -85,6 +86,7 @@ ampm2 talks to the pm2 daemon directly over pm2's own connection, so it stays li
 - **Stop**: Stops (pauses) a process. pm2 keeps it in its list, so you can start it again.
 - **Restart**: Stops and starts it again. The restart counter goes up by one.
 - **Reload**: A graceful reload. In cluster mode pm2 replaces instances one by one, with no downtime. In fork mode it behaves like a restart.
+- **Start / Stop**: One button that changes: it shows Stop while the process runs, and Start when it is stopped.
 - **Delete**: Stops the process and removes it from pm2. Its script and log files stay on disk, and it stays in the Saved list so you can start it again later.
 
 ### Where to find them
@@ -93,7 +95,10 @@ ampm2 talks to the pm2 daemon directly over pm2's own connection, so it stays li
 - **Right-click a row** *(Windows)*: Start, Stop, Restart, Reload, Logs, Open working folder, Reset restart counter, Flush logs and Delete.
 - **Right-click a row** *(macOS)*: Start, Stop, Restart, Reload, Logs, Show working folder, Flush logs and Delete.
 - **Details pane**: Start or Stop, Restart, Reload and Delete for the selected process.
-- **Header**: Save the process list, Restart all and Stop all.
+- **Above the list**: Start all starts every stopped or errored process, Restart all restarts every process, and Stop all stops every running one. Next to them, Refresh reads the list again.
+- **Header**: Save the process list (pm2 save).
+- **Tray menu** *(Windows)*: Restart all and Stop all are also in the tray icon's menu.
+- **Menu bar** *(macOS)*: Restart all and Stop all are also in the menu bar icon's menu.
 
 ### Several processes at once *(Windows)*
 

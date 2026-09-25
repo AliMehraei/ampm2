@@ -24,6 +24,21 @@ public partial class MainWindow : Window
         InitializeComponent();
         Width = vm.Settings.Width;
         Height = vm.Settings.Height;
+        if (OperatingSystem.IsMacOS())
+        {
+            // modern macOS look: content runs under the title bar, next to the traffic-light buttons
+            ExtendClientAreaToDecorationsHint = true;
+            ExtendClientAreaTitleBarHeightHint = -1;
+            HeaderBar.Padding = new Avalonia.Thickness(86, 18, 20, 12);
+            HeaderBar.PointerPressed += (_, e) =>
+            {
+                if (e.GetCurrentPoint(HeaderBar).Properties.IsLeftButtonPressed && e.Source == HeaderBar) BeginMoveDrag(e);
+            };
+            HeaderBar.DoubleTapped += (_, e) =>
+            {
+                if (e.Source == HeaderBar) WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            };
+        }
         vm.LogsAppended += force => Dispatcher.UIThread.Post(() => ScrollLogs(force), DispatcherPriority.Background);
         vm.PropertyChanged += OnVmChanged;
         KeyDown += OnKeyDown;

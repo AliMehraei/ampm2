@@ -24,6 +24,7 @@ public sealed class ProcessItem : ObservableObject
     public string Status => _p.Status;
     public string Mode => _p.ExecMode == "cluster" ? $"cluster ×{Math.Max(1, _p.Instances)}" : (_p.ExecMode.Length == 0 ? "fork" : _p.ExecMode);
     public bool IsCluster => _p.ExecMode == "cluster";
+    public string ModeShort => IsCluster ? "cluster" : "fork";
     public string PidText => _p.Pid > 0 && IsOnline ? _p.Pid.ToString() : "—";
     public int Restarts => _p.Restarts;
     public bool HasRestarts => _p.Restarts > 0;
@@ -49,7 +50,11 @@ public sealed class ProcessItem : ObservableObject
     private double _cpu;
     public double Cpu { get => _cpu; private set { if (Set(ref _cpu, value)) { Raise(nameof(CpuText)); Raise(nameof(CpuBar)); } } }
     public string CpuText => IsOnline ? $"{_cpu:0.#}%" : "—";
-    public double CpuBar => Math.Min(1, _cpu / 100.0);
+    public double CpuBar => IsOnline ? Math.Min(1, _cpu / 100.0) : 0;
+    private double _memShare;
+    /// <summary>Memory relative to the biggest app (0..1), for the row's memory bar.</summary>
+    public double MemBar => IsOnline ? Math.Max(0, Math.Min(1, _memShare)) : 0;
+    public void SetMemShare(double s) { if (Math.Abs(s - _memShare) > 0.005) { _memShare = s; Raise(nameof(MemBar)); } }
 
     private long _mem;
     public long Memory { get => _mem; private set { if (Set(ref _mem, value)) Raise(nameof(MemText)); } }

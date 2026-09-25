@@ -43,6 +43,7 @@ public sealed class ProcessRow : ObservableObject
     public bool CanStart => !IsOnline && _p.Status != "launching";
     public bool CanStop => IsOnline || _p.Status is "launching" or "waiting restart";
     public bool IsCluster => _p.ExecMode == "cluster";
+    public string ModeShort => IsCluster ? "cluster" : "fork";
     public string Mode => IsCluster ? $"cluster ×{Math.Max(1, _p.Instances)}" : "fork";
     public string Namespace => _p.Namespace is "" or "default" ? "" : _p.Namespace;
     public bool HasNamespace => Namespace.Length > 0;
@@ -65,7 +66,13 @@ public sealed class ProcessRow : ObservableObject
     private double _cpu;
     public double Cpu { get => _cpu; private set { if (Set(ref _cpu, value)) { Raise(nameof(CpuText)); Raise(nameof(CpuBarWidth)); } } }
     public string CpuText => IsOnline ? $"{_cpu:0.#}%" : "—";
-    public double CpuBarWidth => Math.Min(1, _cpu / 100.0) * 56;
+    public double CpuBarWidth => IsOnline ? Math.Min(1, _cpu / 100.0) * 56 : 0;
+    private double _memShare;
+    public double MemBarWidth => IsOnline ? Math.Max(0, Math.Min(1, _memShare)) * 56 : 0;
+    public void SetMemShare(double s) { if (Math.Abs(s - _memShare) > 0.005) { _memShare = s; Raise(nameof(MemBarWidth)); } }
+    /// <summary>Start/Stop toggle: the same button changes its icon and text.</summary>
+    public string RunTip => CanStop ? "Stop (pause)" : "Start";
+    public string RunText => CanStop ? "Stop" : "Start";
     private long _mem;
     public long Memory { get => _mem; private set { if (Set(ref _mem, value)) Raise(nameof(MemText)); } }
     public string MemText => IsOnline ? Fmt.Bytes(_mem) : "—";

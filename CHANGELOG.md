@@ -5,6 +5,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Start all, Restart all and Stop all** as labelled buttons above the process list, next to Refresh, in both apps. Start all starts every stopped or errored process, and Stop all only touches running ones. Restart all and Stop all still ask first.
+- A global error handler in the macOS app. An unexpected error now shows a message and is written to `~/Library/Application Support/ampm2/errors.log`, instead of closing the app.
+
+### Changed
+- **A visual refresh of both apps:**
+  - A gradient primary button in the logo's colours, and quieter secondary buttons.
+  - Header stat tiles, and status dots with a soft halo.
+  - CPU and memory bars in every row.
+  - A quick-facts row in the details pane (uptime, restarts, PID, mode), with process settings grouped into Process, Lifecycle, and Logs and versions.
+  - Friendlier empty and status screens on macOS.
+- On macOS, the header now runs under the title bar, next to the window buttons, like native Mac apps. Drag the header to move the window, or double-click it to zoom.
+- The Start and Stop buttons are now one button that switches between the two, in the rows and in the details pane.
+
+### Fixed
+- **macOS:** clicking Stop could close the app. The Stop button disappeared from under the pointer while its tooltip was open, and a new Start button replaced it; the button now stays in place and only changes its icon and label, and tooltips close on click. A saved app's Start button likewise stays in place and is disabled while the app runs.
+- **macOS:** background refreshes can no longer close the app when an unexpected error happens.
+
 ## [1.2.0] - 2026-09-25
 
 ### Added

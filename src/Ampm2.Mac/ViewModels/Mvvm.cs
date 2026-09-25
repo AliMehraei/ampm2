@@ -52,7 +52,7 @@ public sealed class Command : ICommand
         if (!CanExecute(p)) return;
         _busy = true; Requery();
         try { await _run(p); }
-        catch (Exception ex) { App.Toast("Error", ex.Message, ToastKind.Error); }
+        catch (Exception ex) { App.ReportError(ex); }
         finally { _busy = false; Requery(); }
     }
 }

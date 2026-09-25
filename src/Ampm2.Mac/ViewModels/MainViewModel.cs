@@ -40,24 +40,26 @@ public sealed class MainViewModel : ObservableObject
     {
         Settings = settings;
         _metricsTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Clamp(settings.MetricsIntervalSec, 1, 30)) };
-        _metricsTimer.Tick += (_, _) => SampleMetrics();
+        _metricsTimer.Tick += (_, _) => Guard(SampleMetrics);
         _listTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Clamp(settings.ListIntervalSec, 10, 3600)) };
-        _listTimer.Tick += async (_, _) => await RefreshListAsync();
+        _listTimer.Tick += async (_, _) => await GuardAsync(RefreshListAsync);
         _retryTimer = new DispatcherTimer();
-        _retryTimer.Tick += async (_, _) => { _retryTimer.Stop(); await ConnectAsync(); };
+        _retryTimer.Tick += async (_, _) => { _retryTimer.Stop(); await GuardAsync(ConnectAsync); };
         _eventDebounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
-        _eventDebounce.Tick += async (_, _) => { _eventDebounce.Stop(); await RefreshListAsync(); };
+        _eventDebounce.Tick += async (_, _) => { _eventDebounce.Stop(); await GuardAsync(RefreshListAsync); };
         _logFlush = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-        _logFlush.Tick += (_, _) => FlushLogs();
+        _logFlush.Tick += (_, _) => Guard(FlushLogs);
 
         RefreshCommand = Command.Async(async () => { if (IsConnected) await RefreshListAsync(); else await ConnectAsync(); });
         StartCommand = new Command(p => ActAsync(p, "start"), _ => IsConnected);
+        ToggleRunCommand = new Command(p => ActAsync(p, ((p as ProcessRow) ?? _selected)?.CanStop == true ? "stop" : "start"), _ => IsConnected);
+        StartAllCommand = Command.Async(() => ActOnAsync(_all.Where(i => i.CanStart).ToList(), "start"), () => IsConnected && _all.Any(i => i.CanStart));
         StopCommand = new Command(p => ActAsync(p, "stop"), _ => IsConnected);
         RestartCommand = new Command(p => ActAsync(p, "restart"), _ => IsConnected);
         ReloadCommand = new Command(p => ActAsync(p, "reload"), _ => IsConnected);
         DeleteCommand = new Command(p => ActAsync(p, "delete"), _ => IsConnected);
         RestartAllCommand = Command.Async(() => AllAsync("restart"), () => IsConnected && _all.Count > 0);
-        StopAllCommand = Command.Async(() => AllAsync("stop"), () => IsConnected && _all.Count > 0);
+        StopAllCommand = Command.Async(() => AllAsync("stop"), () => IsConnected && _all.Any(i => i.CanStop));
         SaveCommand = Command.Async(() => CliAsync("Saved", "Process list saved to dump.pm2.", "save"), () => IsConnected);
         ResurrectCommand = Command.Async(() => CliAsync("Resurrected", "Saved processes restored.", "resurrect"), () => CanUseCli);
         StartDaemonCommand = Command.Async(StartDaemonAsync, () => State == ConnState.NotRunning && Pm2Endpoints.IsDefault);
@@ -195,6 +197,16 @@ public sealed class MainViewModel : ObservableObject
         finally { _connecting = false; }
     }
 
+    private static void Guard(Action a)
+    {
+        try { a(); } catch (Exception ex) { App.ReportError(ex); }
+    }
+
+    private static async Task GuardAsync(Func<Task> a)
+    {
+        try { await a(); } catch (Exception ex) { App.ReportError(ex); }
+    }
+
     private void Retry(int s) { _retryTimer.Interval = TimeSpan.FromSeconds(s); _retryTimer.Start(); }
 
     private void OnDisconnected(Pm2Rpc rpc)
@@ -315,6 +327,9 @@ public sealed class MainViewModel : ObservableObject
             else if (!i.IsOnline) i.ClearMetrics();
             i.Tick();
         }
+        long maxMem = 1;
+        foreach (var i in _all) if (i.Memory > maxMem) maxMem = i.Memory;
+        foreach (var i in _all) i.SetMemShare((double)i.Memory / maxMem);
         Selected?.BuildSparklines(360, 56);
         if (_sortKey is "cpu" or "mem") ApplyView();
         TotalCpuText = $"{c:0.#}%";
@@ -474,6 +489,8 @@ public sealed class MainViewModel : ObservableObject
 
     public Command RefreshCommand { get; }
     public Command StartCommand { get; }
+    public Command ToggleRunCommand { get; }
+    public Command StartAllCommand { get; }
     public Command StopCommand { get; }
     public Command RestartCommand { get; }
     public Command ReloadCommand { get; }
@@ -570,7 +587,7 @@ public sealed class MainViewModel : ObservableObject
         if (Settings.ConfirmDestructive && !await ConfirmAsync(verb == "stop" ? "Stop all processes?" : "Restart all processes?",
                 $"This will {verb} all {_all.Count} pm2 processes.", verb == "stop" ? "Stop all" : "Restart all", verb == "stop"))
             return;
-        await ActOnAsync(_all.ToList(), verb);
+        await ActOnAsync(verb == "stop" ? _all.Where(i => i.CanStop).ToList() : _all.ToList(), verb);
     }
 
     private async Task FlushAsync(ProcessRow? row)
