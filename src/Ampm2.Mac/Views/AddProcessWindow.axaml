@@ -1,0 +1,146 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ampm2.Mac.Views.AddProcessWindow"
+        x:CompileBindings="False"
+        Title="New process · ampm2" Width="640" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <ScrollViewer MaxHeight="880">
+        <StackPanel Margin="26,20,26,22" Spacing="14">
+            <StackPanel>
+                <TextBlock Text="Start a new process" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock Text="ampm2 writes a pm2 app config and runs pm2 start with it." Classes="dim" Margin="0,3,0,0"/>
+            </StackPanel>
+
+            <Border Classes="segments" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
+                    <ToggleButton x:Name="KindScript" Classes="seg" Content="Script / program" IsChecked="True" Click="Kind_Click" Tag="script"/>
+                    <ToggleButton x:Name="KindNpm" Classes="seg" Content="npm script" Click="Kind_Click" Tag="npm"/>
+                    <ToggleButton x:Name="KindEco" Classes="seg" Content="Ecosystem file" Click="Kind_Click" Tag="eco"/>
+                </StackPanel>
+            </Border>
+
+            <!-- script -->
+            <StackPanel x:Name="ScriptPanel" Spacing="14">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Script or executable"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseScript_Click"/>
+                        <TextBox x:Name="ScriptBox" Classes="mono" TextChanged="Script_Changed"/>
+                    </DockPanel>
+                </StackPanel>
+                <Grid ColumnDefinitions="*,14,*">
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Interpreter"/>
+                        <ComboBox x:Name="InterpreterBox" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="Auto (by file type)" Tag="auto"/>
+                            <ComboBoxItem Content="node" Tag="node"/>
+                            <ComboBoxItem Content="python3" Tag="python3"/>
+                            <ComboBoxItem Content="bun" Tag="bun"/>
+                            <ComboBoxItem Content="none (run the executable)" Tag="none"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Classes="label" Text="Node arguments"/>
+                        <TextBox x:Name="NodeArgsBox" Classes="mono" PlaceholderText="--max-old-space-size=4096"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- npm -->
+            <StackPanel x:Name="NpmPanel" Spacing="14" IsVisible="False">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Project folder (contains package.json)"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseProject_Click"/>
+                        <TextBox x:Name="ProjectBox" Classes="mono" LostFocus="Project_LostFocus"/>
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="label" Text="npm script"/>
+                    <ComboBox x:Name="NpmScriptBox" HorizontalAlignment="Stretch"/>
+                    <TextBlock x:Name="NpmHint" Classes="faint" FontSize="11.5" TextWrapping="Wrap" Margin="0,4,0,0" Text="Runs npm run &lt;script&gt; in the project folder."/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ecosystem -->
+            <StackPanel x:Name="EcoPanel" Spacing="14" IsVisible="False">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Ecosystem file (.config.js, .json, .yml)"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseEco_Click"/>
+                        <TextBox x:Name="EcoBox" Classes="mono"/>
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Only these apps (optional, comma separated)"/>
+                    <TextBox x:Name="OnlyBox"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- common -->
+            <StackPanel x:Name="CommonPanel" Spacing="14">
+                <Grid ColumnDefinitions="*,14,1.4*">
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Name"/>
+                        <TextBox x:Name="NameBox" TextChanged="Name_Changed"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" x:Name="CwdPanel">
+                        <TextBlock Classes="label" Text="Working directory"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="…" Margin="6,0,0,0" Click="BrowseCwd_Click"/>
+                            <TextBox x:Name="CwdBox" Classes="mono"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Grid>
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Arguments"/>
+                    <TextBox x:Name="ArgsBox" Classes="mono"/>
+                </StackPanel>
+                <Grid ColumnDefinitions="*,14,*,14,*">
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Instances"/>
+                        <ComboBox x:Name="InstancesBox" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="1 (fork)" Tag="1"/>
+                            <ComboBoxItem Content="2 (cluster)" Tag="2"/>
+                            <ComboBoxItem Content="4 (cluster)" Tag="4"/>
+                            <ComboBoxItem Content="all cores (cluster)" Tag="max"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Classes="label" Text="Restart above memory"/>
+                        <TextBox x:Name="MaxMemBox" PlaceholderText="e.g. 500M"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Classes="label" Text="Restart delay (ms)"/>
+                        <TextBox x:Name="DelayBox"/>
+                    </StackPanel>
+                </Grid>
+                <StackPanel>
+                    <TextBlock Classes="label" Text="Environment variables (KEY=value, one per line)"/>
+                    <TextBox x:Name="EnvBox" Classes="mono" AcceptsReturn="True" Height="84" TextWrapping="NoWrap"/>
+                </StackPanel>
+                <WrapPanel ItemSpacing="22">
+                    <ToggleSwitch x:Name="AutoRestartBox" Content="Auto restart" IsChecked="True" OnContent="" OffContent=""/>
+                    <ToggleSwitch x:Name="WatchBox" Content="Watch files" OnContent="" OffContent=""/>
+                    <ToggleSwitch x:Name="TimeBox" Content="Timestamp log lines" IsChecked="True" OnContent="" OffContent=""/>
+                </WrapPanel>
+            </StackPanel>
+
+            <ToggleSwitch x:Name="SaveBox" Content="Save the process list afterwards (survives pm2 restarts)" IsChecked="True" OnContent="" OffContent=""/>
+
+            <Border x:Name="ErrorPanel" Background="#2EEF5350" CornerRadius="8" Padding="12,9" IsVisible="False">
+                <TextBlock x:Name="ErrorText" Foreground="#E0484E" TextWrapping="Wrap" Classes="mono"/>
+            </Border>
+
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Spacing="8">
+                    <Button Content="Cancel" Click="Cancel_Click"/>
+                    <Button x:Name="StartButton" AutomationProperties.Name="Start" Classes="primary" Click="Start_Click" IsDefault="True">
+                        <StackPanel Orientation="Horizontal" Spacing="7"><PathIcon Data="{StaticResource IcPlay}" Foreground="White"/><TextBlock x:Name="StartText" Text="Start"/></StackPanel>
+                    </Button>
+                </StackPanel>
+                <TextBlock x:Name="PreviewText" Classes="faint" FontSize="11.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

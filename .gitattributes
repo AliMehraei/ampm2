@@ -1,0 +1,15 @@
+* text=auto
+
+# shell scripts must stay LF or they fail on macOS/Linux
+*.sh      text eol=lf
+*.command text eol=lf
+
+# Windows scripts
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.iss text eol=crlf
+
+*.png binary
+*.ico binary
+*.icns binary

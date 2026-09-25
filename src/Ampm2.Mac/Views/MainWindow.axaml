@@ -1,0 +1,607 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Ampm2.Mac.ViewModels"
+        x:Class="Ampm2.Mac.Views.MainWindow"
+        x:CompileBindings="False"
+        x:Name="Root"
+        Title="ampm2" Width="1180" Height="720" MinWidth="880" MinHeight="500"
+        Icon="/Assets/icon-256.png"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Cmd+R" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Gesture="Ctrl+R" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Gesture="Cmd+N" Command="{Binding AddCommand}"/>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding AddCommand}"/>
+        <KeyBinding Gesture="Cmd+S" Command="{Binding SaveCommand}"/>
+        <KeyBinding Gesture="Cmd+OemComma" Command="{Binding OpenSettingsCommand}"/>
+    </Window.KeyBindings>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ================= header ================= -->
+        <Grid Grid.Row="0" Margin="20,14,20,12" ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Image Source="/Assets/icon-64.png" Width="30" Height="30" Margin="0,0,11,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="ampm2" FontSize="17" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,1,0,0" Spacing="6">
+                        <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                 Fill="{Binding IsConnected, Converter={x:Static vm:Conv.ConnectedBrush}}"/>
+                        <TextBlock Text="{Binding StateText}" Classes="dim" FontSize="11.5"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsConnected}">
+                <Border Classes="chip"><StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="7" Height="7" Fill="{x:Static vm:StatusBrushes.Online}" VerticalAlignment="Center"/>
+                    <TextBlock><Run Text="{Binding OnlineCount}" FontWeight="SemiBold"/><Run Text=" online" Foreground="{DynamicResource TextDim}"/></TextBlock>
+                </StackPanel></Border>
+                <Border Classes="chip"><StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="7" Height="7" Fill="{x:Static vm:StatusBrushes.Stopped}" VerticalAlignment="Center"/>
+                    <TextBlock><Run Text="{Binding StoppedCount}" FontWeight="SemiBold"/><Run Text=" stopped" Foreground="{DynamicResource TextDim}"/></TextBlock>
+                </StackPanel></Border>
+                <Border Classes="chip"><StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="7" Height="7" Fill="{x:Static vm:StatusBrushes.Errored}" VerticalAlignment="Center"/>
+                    <TextBlock><Run Text="{Binding ErroredCount}" FontWeight="SemiBold"/><Run Text=" errored" Foreground="{DynamicResource TextDim}"/></TextBlock>
+                </StackPanel></Border>
+                <Border Classes="chip" ToolTip.Tip="Total CPU of all online process trees (100% = one core)">
+                    <TextBlock><Run Text="CPU " Foreground="{DynamicResource TextDim}"/><Run Text="{Binding TotalCpuText}" FontWeight="SemiBold"/></TextBlock>
+                </Border>
+                <Border Classes="chip" ToolTip.Tip="Total resident memory of all online process trees">
+                    <TextBlock><Run Text="RAM " Foreground="{DynamicResource TextDim}"/><Run Text="{Binding TotalMemText}" FontWeight="SemiBold"/></TextBlock>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+                <Button Classes="icon" ToolTip.Tip="Save process list (pm2 save) · ⌘S" Command="{Binding SaveCommand}"><PathIcon Data="{StaticResource IcSave}"/></Button>
+                <Button Classes="icon" ToolTip.Tip="Restart all" Command="{Binding RestartAllCommand}"><PathIcon Data="{StaticResource IcRestart}"/></Button>
+                <Button Classes="icon" ToolTip.Tip="Stop all" Command="{Binding StopAllCommand}"><PathIcon Data="{StaticResource IcStop}"/></Button>
+                <Button Classes="icon" ToolTip.Tip="Settings · ⌘," Command="{Binding OpenSettingsCommand}"><PathIcon Data="{StaticResource IcGear}"/></Button>
+                <Button Classes="icon" ToolTip.Tip="About ampm2" Command="{Binding OpenAboutCommand}"><PathIcon Data="{StaticResource IcInfo}"/></Button>
+                <Button Classes="primary" AutomationProperties.Name="New process" Margin="10,0,0,0" Command="{Binding AddCommand}" ToolTip.Tip="Start a new process · ⌘N">
+                    <StackPanel Orientation="Horizontal" Spacing="7"><PathIcon Data="{StaticResource IcAdd}" Foreground="White"/><TextBlock Text="New process"/></StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ================= content ================= -->
+        <Grid Grid.Row="1" Margin="20,0,20,20" ColumnDefinitions="*,14,420">
+
+            <!-- list card -->
+            <Border Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <StackPanel Margin="14,12,14,8" Spacing="10">
+                        <DockPanel>
+                            <Border Classes="segments" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Classes="seg" AutomationProperties.Name="Processes" IsChecked="{Binding IsProcessView, Mode=OneWay}" Command="{Binding SetViewCommand}" CommandParameter="processes">
+                                        <StackPanel Orientation="Horizontal" Spacing="7"><PathIcon Data="{StaticResource IcList}" Width="12" Height="12"/><TextBlock Text="Processes"/></StackPanel>
+                                    </ToggleButton>
+                                    <ToggleButton Classes="seg" AutomationProperties.Name="Saved list" IsChecked="{Binding IsSavedView, Mode=OneWay}" Command="{Binding SetViewCommand}" CommandParameter="saved"
+                                                  ToolTip.Tip="ampm2's own copy of your process list: survives pm2 losing its list, can be imported and exported">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <PathIcon Data="{StaticResource IcBookmark}" Width="12" Height="12"/>
+                                            <TextBlock><Run Text="Saved list "/><Run Text="{Binding SavedCount}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </StackPanel>
+                            </Border>
+                            <Button DockPanel.Dock="Right" Classes="icon" HorizontalAlignment="Right" ToolTip.Tip="Refresh · ⌘R" Command="{Binding RefreshCommand}" IsVisible="{Binding IsProcessView}">
+                                <PathIcon Data="{StaticResource IcRestart}"/>
+                            </Button>
+                            <ToggleSwitch DockPanel.Dock="Right" HorizontalAlignment="Right" IsChecked="{Binding AutoSyncSaved}" IsVisible="{Binding IsSavedView}"
+                                          OnContent="Keep in sync with pm2" OffContent="Keep in sync with pm2"
+                                          ToolTip.Tip="Every app pm2 runs is copied here automatically. Apps removed from pm2 stay saved."/>
+                        </DockPanel>
+
+                        <!-- processes: search + filters -->
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsProcessView}" IsEnabled="{Binding IsConnected}">
+                            <TextBox PlaceholderText="Search name, id, script…" Text="{Binding SearchText}" MaxWidth="320" HorizontalAlignment="Stretch">
+                                <TextBox.InnerLeftContent><PathIcon Data="{StaticResource IcSearch}" Width="13" Height="13" Margin="9,0,0,0" Foreground="{DynamicResource TextFaint}"/></TextBox.InnerLeftContent>
+                            </TextBox>
+                            <Border Grid.Column="1" Classes="segments" Margin="12,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Classes="seg" IsChecked="{Binding IsFilterAll, Mode=OneWay}" Command="{Binding SetFilterCommand}" CommandParameter="all">
+                                        <TextBlock><Run Text="All "/><Run Text="{Binding TotalCount}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </ToggleButton>
+                                    <ToggleButton Classes="seg" Content="Online" IsChecked="{Binding IsFilterOnline, Mode=OneWay}" Command="{Binding SetFilterCommand}" CommandParameter="online"/>
+                                    <ToggleButton Classes="seg" Content="Stopped" IsChecked="{Binding IsFilterStopped, Mode=OneWay}" Command="{Binding SetFilterCommand}" CommandParameter="stopped"/>
+                                    <ToggleButton Classes="seg" Content="Errored" IsChecked="{Binding IsFilterErrored, Mode=OneWay}" Command="{Binding SetFilterCommand}" CommandParameter="errored"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- saved list actions -->
+                        <WrapPanel IsVisible="{Binding IsSavedView}" ItemSpacing="6" LineSpacing="6">
+                            <Button Classes="primary" Command="{Binding StartMissingCommand}" ToolTip.Tip="Start every saved app pm2 does not have">
+                                <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcPlay}" Foreground="White"/>
+                                    <TextBlock><Run Text="Start missing "/><Run Text="{Binding MissingCount}"/></TextBlock></StackPanel>
+                            </Button>
+                            <Button Command="{Binding SyncSavedNowCommand}" ToolTip.Tip="Copy the current pm2 list into the Saved list now">
+                                <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcSave}"/><TextBlock Text="Save from pm2"/></StackPanel>
+                            </Button>
+                            <Button Command="{Binding ImportSavedCommand}" ToolTip.Tip="Ecosystem .json / .config.js, or pm2's dump.pm2">
+                                <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcImport}"/><TextBlock Text="Import…"/></StackPanel>
+                            </Button>
+                            <Button Command="{Binding ExportSavedCommand}" CommandParameter="all" ToolTip.Tip="Save everything as a pm2 ecosystem file">
+                                <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcExport}"/><TextBlock Text="Export all…"/></StackPanel>
+                            </Button>
+                            <Button Classes="icon" ToolTip.Tip="Show the saved-list file in Finder" Command="{Binding RevealSavedFileCommand}"><PathIcon Data="{StaticResource IcFolder}"/></Button>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <!-- column headers -->
+                    <Grid Grid.Row="1" Margin="16,0,16,4" ColumnDefinitions="*,92,92,84,70,44,128" IsVisible="{Binding ShowList}">
+                        <Button Classes="colhead" Content="NAME" Command="{Binding SortCommand}" CommandParameter="name" Margin="-4,0,0,0"/>
+                        <Button Grid.Column="1" Classes="colhead" Content="STATUS" Command="{Binding SortCommand}" CommandParameter="status"/>
+                        <Button Grid.Column="2" Classes="colhead" Content="CPU" Command="{Binding SortCommand}" CommandParameter="cpu"/>
+                        <Button Grid.Column="3" Classes="colhead" Content="MEMORY" Command="{Binding SortCommand}" CommandParameter="mem"/>
+                        <Button Grid.Column="4" Classes="colhead" Content="UPTIME" Command="{Binding SortCommand}" CommandParameter="uptime"/>
+                        <Button Grid.Column="5" Classes="colhead" Content="↻" ToolTip.Tip="Restarts" Command="{Binding SortCommand}" CommandParameter="restarts"/>
+                        <Button Grid.Column="6" Classes="colhead" Content="ID" HorizontalAlignment="Right" Command="{Binding SortCommand}" CommandParameter="id"/>
+                    </Grid>
+
+                    <!-- process rows -->
+                    <ListBox x:Name="ProcessList" Grid.Row="2" Classes="rows" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}"
+                             IsVisible="{Binding ShowList}" Padding="0,0,0,8" DoubleTapped="ProcessList_DoubleTapped">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="50" ColumnDefinitions="*,92,92,84,70,44,128" Background="Transparent">
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Start" Command="{Binding #Root.DataContext.StartCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanStart}"/>
+                                            <MenuItem Header="Stop" Command="{Binding #Root.DataContext.StopCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanStop}"/>
+                                            <MenuItem Header="Restart" Command="{Binding #Root.DataContext.RestartCommand}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Reload (zero-downtime)" Command="{Binding #Root.DataContext.ReloadCommand}" CommandParameter="{Binding}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Logs" Command="{Binding #Root.DataContext.ShowLogsCommand}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Show working folder" Command="{Binding #Root.DataContext.OpenFolderCommand}" CommandParameter="{Binding P.Cwd}"/>
+                                            <MenuItem Header="Flush logs…" Command="{Binding #Root.DataContext.FlushCommand}" CommandParameter="{Binding}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Delete…" Command="{Binding #Root.DataContext.DeleteCommand}" CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                                            <Border Background="{DynamicResource Surface2}" CornerRadius="4" Padding="5,0,5,1" VerticalAlignment="Center" IsVisible="{Binding IsCluster}">
+                                                <TextBlock Text="{Binding Mode}" FontSize="10.5" Classes="dim"/>
+                                            </Border>
+                                            <Border Background="{DynamicResource AccentSoft}" CornerRadius="4" Padding="5,0,5,1" VerticalAlignment="Center" IsVisible="{Binding HasNamespace}">
+                                                <TextBlock Text="{Binding Namespace}" FontSize="10.5" Foreground="{DynamicResource Accent}"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Script}" FontSize="11" Classes="faint" Margin="16,2,0,0" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Script}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Classes="pill" Background="{Binding StatusSoftBrush}">
+                                        <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CpuText}" FontSize="12.5"/>
+                                        <Border Width="56" Height="3" CornerRadius="2" Background="{DynamicResource Surface2}" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                            <Border CornerRadius="2" Background="{DynamicResource Accent}" HorizontalAlignment="Left" Width="{Binding CpuBarWidth}"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="3" Text="{Binding MemText}" VerticalAlignment="Center" FontSize="12.5" ToolTip.Tip="{Binding TreeText}"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding UptimeText}" VerticalAlignment="Center" FontSize="12.5" Classes="dim"/>
+                                    <TextBlock Grid.Column="5" Text="{Binding Restarts}" VerticalAlignment="Center" FontSize="12.5" Foreground="{Binding RestartsBrush}"/>
+                                    <Panel Grid.Column="6">
+                                        <TextBlock Classes="rowid faint" Text="{Binding IdText}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Margin="0,0,4,0"/>
+                                        <StackPanel Classes="actions" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Classes="icon" ToolTip.Tip="Start" Foreground="{x:Static vm:StatusBrushes.Online}" IsVisible="{Binding CanStart}"
+                                                    Command="{Binding #Root.DataContext.StartCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcPlay}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Stop (pause)" IsVisible="{Binding CanStop}"
+                                                    Command="{Binding #Root.DataContext.StopCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcPause}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Restart"
+                                                    Command="{Binding #Root.DataContext.RestartCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcRestart}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Logs"
+                                                    Command="{Binding #Root.DataContext.ShowLogsCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcLogs}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Delete"
+                                                    Command="{Binding #Root.DataContext.DeleteCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcDelete}"/></Button>
+                                        </StackPanel>
+                                        <TextBlock Text="working…" IsVisible="{Binding Busy}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5"
+                                                   Foreground="{DynamicResource Accent}" Background="{DynamicResource Selected}" Padding="8,2"/>
+                                    </Panel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- saved rows -->
+                    <ListBox Grid.Row="1" Grid.RowSpan="2" Classes="rows" ItemsSource="{Binding SavedItems}" SelectedItem="{Binding SelectedSaved}"
+                             IsVisible="{Binding IsSavedView}" Padding="0,0,0,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="50" ColumnDefinitions="*,Auto,112" Background="Transparent">
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Start in pm2" Command="{Binding #Root.DataContext.StartSavedCommand}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Export…" Command="{Binding #Root.DataContext.ExportSavedCommand}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Show working folder" Command="{Binding #Root.DataContext.OpenFolderCommand}" CommandParameter="{Binding Cwd}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Remove from Saved list…" Command="{Binding #Root.DataContext.RemoveSavedCommand}" CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Ellipse Width="8" Height="8" Fill="{Binding StateBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5"/>
+                                            <TextBlock Text="{Binding Summary}" FontSize="11" Classes="faint" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Script}" FontSize="11" Classes="faint" Margin="16,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Classes="pill" Background="{Binding StateSoftBrush}" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <Panel Grid.Column="2">
+                                        <TextBlock Classes="rowid faint" Text="{Binding UpdatedText}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <StackPanel Classes="actions" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Classes="icon" ToolTip.Tip="Start in pm2" Foreground="{x:Static vm:StatusBrushes.Online}" IsVisible="{Binding IsMissing}"
+                                                    Command="{Binding #Root.DataContext.StartSavedCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcPlay}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Export…"
+                                                    Command="{Binding #Root.DataContext.ExportSavedCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcExport}"/></Button>
+                                            <Button Classes="icon" ToolTip.Tip="Remove from Saved list"
+                                                    Command="{Binding #Root.DataContext.RemoveSavedCommand}" CommandParameter="{Binding}"><PathIcon Data="{StaticResource IcDelete}"/></Button>
+                                        </StackPanel>
+                                    </Panel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- ===== states ===== -->
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="470" Spacing="6" IsVisible="{Binding SavedEmptyVisible}">
+                        <PathIcon Data="{StaticResource IcBookmark}" Width="30" Height="30" Foreground="{DynamicResource TextFaint}"/>
+                        <TextBlock Text="Nothing saved yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
+                                   Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460" Spacing="6" IsVisible="{Binding IsEmpty}">
+                        <TextBlock Text="No processes yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="pm2 is running but manages nothing. Start a new process, or restore a saved list." TextWrapping="Wrap" TextAlignment="Center" Classes="dim"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,10,0,0">
+                            <Button Classes="primary" Content="New process" Command="{Binding AddCommand}"/>
+                            <Button Content="Resurrect saved list" Command="{Binding ResurrectCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding ShowConnecting}">
+                        <TextBlock Text="Connecting to pm2…" Classes="dim"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500" Spacing="6" IsVisible="{Binding ShowNotRunning}">
+                        <TextBlock Text="The pm2 daemon is not running" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
+                                   Text="Start it here. ampm2 keeps watching and connects automatically when pm2 starts elsewhere."/>
+                        <WrapPanel HorizontalAlignment="Center" ItemSpacing="8" LineSpacing="8" Margin="0,10,0,0">
+                            <Button Classes="primary" Content="Start pm2" Command="{Binding StartDaemonCommand}"/>
+                            <Button Content="Start + resurrect" Command="{Binding ResurrectCommand}" ToolTip.Tip="Start pm2 and restore pm2's own saved list (dump.pm2)"/>
+                            <Button Command="{Binding StartMissingCommand}" ToolTip.Tip="Start pm2 with the apps in ampm2's Saved list">
+                                <TextBlock><Run Text="Start from Saved list ("/><Run Text="{Binding SavedCount}"/><Run Text=")"/></TextBlock>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500" Spacing="6" IsVisible="{Binding ShowAccessDenied}">
+                        <TextBlock Text="No access to the pm2 daemon" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
+                                   Text="pm2's socket belongs to another user, usually because pm2 was started with sudo. Start pm2 as yourself (pm2 kill with sudo, then pm2 resurrect) so ampm2 can manage it."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="6" IsVisible="{Binding ShowNoPm2}">
+                        <TextBlock Text="pm2 is not installed" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
+                                   Text="ampm2 can install what is missing: Node.js with Homebrew (or from nodejs.org), then pm2 with npm."/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,10,0,0">
+                            <Button Content="1 · Install Node.js" Command="{Binding InstallNodeCommand}"/>
+                            <Button Classes="primary" Content="2 · Install pm2" Command="{Binding InstallPm2Command}"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding InstallLog}" Classes="faint mono" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="480" Spacing="6" IsVisible="{Binding ShowError}">
+                        <TextBlock Text="Could not talk to pm2" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" TextAlignment="Center" Classes="dim"/>
+                        <Button Content="Retry" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- detail card -->
+            <Border Grid.Column="2" Classes="card">
+                <Panel>
+                    <TextBlock Text="Select a process to see its details" Classes="dim" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding ShowNoSelection}"/>
+
+                    <!-- process detail -->
+                    <Grid RowDefinitions="Auto,Auto,*" IsVisible="{Binding #Root.DataContext.ShowProcessDetail}" DataContext="{Binding Selected}">
+                        <StackPanel Margin="18,16,18,10">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="250"/>
+                                <Border Classes="pill" Background="{Binding StatusSoftBrush}">
+                                    <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Classes="dim" FontSize="12" Margin="0,3,0,0">
+                                <Run Text="id "/><Run Text="{Binding IdText}" Foreground="{DynamicResource Text}"/>
+                                <Run Text=" · "/><Run Text="{Binding Mode}"/>
+                                <Run Text=" · pid "/><Run Text="{Binding PidText}" Foreground="{DynamicResource Text}"/>
+                                <Run Text=" · up "/><Run Text="{Binding UptimeText}" Foreground="{DynamicResource Text}"/>
+                            </TextBlock>
+                            <WrapPanel Margin="0,12,0,0" ItemSpacing="6" LineSpacing="6">
+                                <Button Classes="primary" IsVisible="{Binding CanStart}" Command="{Binding #Root.DataContext.StartCommand}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcPlay}" Foreground="White"/><TextBlock Text="Start"/></StackPanel>
+                                </Button>
+                                <Button IsVisible="{Binding CanStop}" Command="{Binding #Root.DataContext.StopCommand}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcPause}"/><TextBlock Text="Stop"/></StackPanel>
+                                </Button>
+                                <Button Command="{Binding #Root.DataContext.RestartCommand}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcRestart}"/><TextBlock Text="Restart"/></StackPanel>
+                                </Button>
+                                <Button Command="{Binding #Root.DataContext.ReloadCommand}" CommandParameter="{Binding}" ToolTip.Tip="Graceful reload; zero-downtime in cluster mode">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcBolt}"/><TextBlock Text="Reload"/></StackPanel>
+                                </Button>
+                                <Button Command="{Binding #Root.DataContext.DeleteCommand}" CommandParameter="{Binding}" Foreground="#E0484E">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcDelete}" Foreground="#E0484E"/><TextBlock Text="Delete"/></StackPanel>
+                                </Button>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,1" Padding="14,6">
+                            <DockPanel>
+                                <Border Classes="segments" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ToggleButton Classes="seg" Content="Overview" IsChecked="{Binding #Root.DataContext.OverviewVisible, Mode=OneWay}" Command="{Binding #Root.DataContext.SetTabCommand}" CommandParameter="overview"/>
+                                        <ToggleButton Classes="seg" Content="Logs" IsChecked="{Binding #Root.DataContext.LogsVisible, Mode=OneWay}" Command="{Binding #Root.DataContext.SetTabCommand}" CommandParameter="logs"/>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" IsVisible="{Binding #Root.DataContext.LogsVisible}" Spacing="2">
+                                    <Border Classes="segments" Margin="0,0,6,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ToggleButton Classes="seg" Padding="8,4" Content="all" IsChecked="{Binding #Root.DataContext.IsStreamAll, Mode=OneWay}" Command="{Binding #Root.DataContext.SetStreamCommand}" CommandParameter="all"/>
+                                            <ToggleButton Classes="seg" Padding="8,4" Content="out" IsChecked="{Binding #Root.DataContext.IsStreamOut, Mode=OneWay}" Command="{Binding #Root.DataContext.SetStreamCommand}" CommandParameter="out"/>
+                                            <ToggleButton Classes="seg" Padding="8,4" Content="err" IsChecked="{Binding #Root.DataContext.IsStreamErr, Mode=OneWay}" Command="{Binding #Root.DataContext.SetStreamCommand}" CommandParameter="err"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ToggleButton Classes="seg" Width="30" Height="30" Padding="7" ToolTip.Tip="Pause live output" IsChecked="{Binding #Root.DataContext.PauseLogs}">
+                                        <PathIcon Data="{StaticResource IcPause}" Width="13" Height="13"/>
+                                    </ToggleButton>
+                                    <Button Classes="icon" ToolTip.Tip="Reload from files" Command="{Binding #Root.DataContext.ReloadLogsCommand}"><PathIcon Data="{StaticResource IcRestart}"/></Button>
+                                    <Button Classes="icon" ToolTip.Tip="Clear view" Command="{Binding #Root.DataContext.ClearLogsCommand}"><PathIcon Data="{StaticResource IcClose}"/></Button>
+                                    <Button Classes="icon" ToolTip.Tip="Show log file in Finder" Command="{Binding #Root.DataContext.OpenFolderCommand}" CommandParameter="{Binding P.OutLog}"><PathIcon Data="{StaticResource IcFolder}"/></Button>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- overview -->
+                        <ScrollViewer Grid.Row="2" Padding="18,14,18,16" IsVisible="{Binding #Root.DataContext.OverviewVisible}">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnDefinitions="*,10,*">
+                                    <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="12,10,12,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="{Binding CpuText}" DockPanel.Dock="Right" FontWeight="SemiBold"/>
+                                                <TextBlock Text="CPU" Classes="dim" FontSize="11.5"/>
+                                            </DockPanel>
+                                            <Viewbox Stretch="Fill" Height="44" Margin="0,6,0,0">
+                                                <Canvas Width="360" Height="56">
+                                                    <Polygon Points="{Binding CpuLine}" Fill="{DynamicResource AccentSoft}" Stroke="{DynamicResource Accent}" StrokeThickness="2.5"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="{DynamicResource Surface2}" CornerRadius="10" Padding="12,10,12,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="{Binding MemText}" DockPanel.Dock="Right" FontWeight="SemiBold"/>
+                                                <TextBlock Text="MEMORY" Classes="dim" FontSize="11.5"/>
+                                            </DockPanel>
+                                            <Viewbox Stretch="Fill" Height="44" Margin="0,6,0,0">
+                                                <Canvas Width="360" Height="56">
+                                                    <Polygon Points="{Binding MemLine}" Fill="{x:Static vm:StatusBrushes.OnlineSoft}" Stroke="{x:Static vm:StatusBrushes.Online}" StrokeThickness="2.5"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <Grid.Styles>
+                                        <Style Selector="TextBlock.k"><Setter Property="Foreground" Value="{DynamicResource TextDim}"/><Setter Property="FontSize" Value="12"/><Setter Property="Margin" Value="0,0,14,9"/></Style>
+                                        <Style Selector="SelectableTextBlock.v"><Setter Property="FontSize" Value="12.5"/><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Margin" Value="0,0,0,9"/></Style>
+                                    </Grid.Styles>
+                                    <TextBlock Grid.Row="0" Classes="k" Text="Script"/>      <SelectableTextBlock Grid.Row="0" Grid.Column="1" Classes="v mono" Text="{Binding P.Script}"/>
+                                    <TextBlock Grid.Row="1" Classes="k" Text="Working dir"/> <SelectableTextBlock Grid.Row="1" Grid.Column="1" Classes="v mono" Text="{Binding P.Cwd}"/>
+                                    <TextBlock Grid.Row="2" Classes="k" Text="Arguments"/>   <SelectableTextBlock Grid.Row="2" Grid.Column="1" Classes="v mono" Text="{Binding P.Args}"/>
+                                    <TextBlock Grid.Row="3" Classes="k" Text="Interpreter"/> <SelectableTextBlock Grid.Row="3" Grid.Column="1" Classes="v" Text="{Binding P.Interpreter}"/>
+                                    <TextBlock Grid.Row="4" Classes="k" Text="Started"/>     <SelectableTextBlock Grid.Row="4" Grid.Column="1" Classes="v" Text="{Binding StartedText}"/>
+                                    <TextBlock Grid.Row="5" Classes="k" Text="Created"/>     <SelectableTextBlock Grid.Row="5" Grid.Column="1" Classes="v" Text="{Binding CreatedText}"/>
+                                    <TextBlock Grid.Row="6" Classes="k" Text="Restarts"/>    <SelectableTextBlock Grid.Row="6" Grid.Column="1" Classes="v" Text="{Binding RestartsText}"/>
+                                    <TextBlock Grid.Row="7" Classes="k" Text="Process tree"/><SelectableTextBlock Grid.Row="7" Grid.Column="1" Classes="v" Text="{Binding TreeText}"/>
+                                    <TextBlock Grid.Row="8" Classes="k" Text="Auto restart"/><SelectableTextBlock Grid.Row="8" Grid.Column="1" Classes="v" Text="{Binding AutoRestartText}"/>
+                                    <TextBlock Grid.Row="9" Classes="k" Text="Watch"/>       <SelectableTextBlock Grid.Row="9" Grid.Column="1" Classes="v" Text="{Binding WatchText}"/>
+                                    <TextBlock Grid.Row="10" Classes="k" Text="Versions"/>   <SelectableTextBlock Grid.Row="10" Grid.Column="1" Classes="v" Text="{Binding VersionsText}"/>
+                                    <TextBlock Grid.Row="11" Classes="k" Text="stdout log"/> <SelectableTextBlock Grid.Row="11" Grid.Column="1" Classes="v mono" Text="{Binding P.OutLog}"/>
+                                    <TextBlock Grid.Row="12" Classes="k" Text="stderr log"/> <SelectableTextBlock Grid.Row="12" Grid.Column="1" Classes="v mono" Text="{Binding P.ErrLog}"/>
+                                    <TextBlock Grid.Row="13" Classes="k" Text="User"/>       <SelectableTextBlock Grid.Row="13" Grid.Column="1" Classes="v" Text="{Binding P.User}"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- logs -->
+                        <Border Grid.Row="2" Background="{DynamicResource LogBg}" CornerRadius="0,0,12,12" IsVisible="{Binding #Root.DataContext.LogsVisible}">
+                            <ListBox x:Name="LogList" Classes="logs" ItemsSource="{Binding #Root.DataContext.Logs}" Background="Transparent"
+                                     SelectionMode="Multiple" Padding="10,8" FontFamily="{StaticResource Mono}" FontSize="12"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto" KeyDown="LogList_KeyDown">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" Foreground="{Binding Converter={x:Static vm:Conv.LogBrush}}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Grid>
+
+                    <!-- saved detail -->
+                    <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding ShowSavedDetail}">
+                        <StackPanel Margin="18,16,18,10" DataContext="{Binding SelectedSaved}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
+                                <Border Classes="pill" Background="{Binding StateSoftBrush}">
+                                    <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Classes="dim" FontSize="12" Margin="0,3,0,0"><Run Text="{Binding Summary}"/><Run Text="  ·  "/><Run Text="{Binding UpdatedText}"/></TextBlock>
+                            <WrapPanel Margin="0,12,0,0" ItemSpacing="6" LineSpacing="6">
+                                <Button Classes="primary" IsVisible="{Binding IsMissing}" Command="{Binding #Root.DataContext.StartSavedCommand}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcPlay}" Foreground="White"/><TextBlock Text="Start in pm2"/></StackPanel>
+                                </Button>
+                                <Button Command="{Binding #Root.DataContext.ExportSavedCommand}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcExport}"/><TextBlock Text="Export…"/></StackPanel>
+                                </Button>
+                                <Button Command="{Binding #Root.DataContext.RemoveSavedCommand}" CommandParameter="{Binding}" Foreground="#E0484E">
+                                    <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcDelete}" Foreground="#E0484E"/><TextBlock Text="Remove…"/></StackPanel>
+                                </Button>
+                            </WrapPanel>
+                            <TextBlock Classes="label" Margin="0,10,0,0" Text="Definition · pm2 ecosystem app (edit and save to change how it starts)"/>
+                        </StackPanel>
+                        <Border Grid.Row="1" Background="{DynamicResource LogBg}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,1">
+                            <TextBox Text="{Binding DefinitionText}" AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap" Classes="mono"
+                                     Background="Transparent" BorderThickness="0" Padding="14,10" x:Name="DefinitionBox"/>
+                        </Border>
+                        <StackPanel Grid.Row="2" Margin="18,10,18,14" Spacing="8">
+                            <TextBlock Text="{Binding DefinitionError}" Foreground="#E0484E" TextWrapping="Wrap" FontSize="12" IsVisible="{Binding HasDefinitionError}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                <Button Content="Revert" Command="{Binding RevertDefinitionCommand}"/>
+                                <Button Classes="primary" Content="Save changes" Command="{Binding SaveDefinitionCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Panel>
+            </Border>
+        </Grid>
+
+        <!-- ================= toasts ================= -->
+        <ItemsControl Grid.RowSpan="2" ItemsSource="{Binding Toasts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" Width="340">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,8,0,0"
+                            BoxShadow="0 4 18 0 #40000000">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Ellipse Width="9" Height="9" Margin="0,5,11,0" VerticalAlignment="Top" Fill="{Binding Converter={x:Static vm:Conv.ToastBrush}}"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Message}" Classes="dim" TextWrapping="Wrap" FontSize="12" Margin="0,2,0,0" MaxHeight="140"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- ================= settings ================= -->
+        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding SettingsOpen}" PointerPressed="Overlay_PointerPressed" Tag="settings">
+            <Border Classes="card" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" PointerPressed="Card_PointerPressed">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Classes="icon" Command="{Binding CloseSettingsCommand}"><PathIcon Data="{StaticResource IcClose}"/></Button>
+                        <TextBlock Text="Settings" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Theme"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <RadioButton GroupName="theme" Content="System" IsChecked="{Binding ThemeSystem}"/>
+                            <RadioButton GroupName="theme" Content="Dark" IsChecked="{Binding ThemeDark}"/>
+                            <RadioButton GroupName="theme" Content="Light" IsChecked="{Binding ThemeLight}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="CPU / memory sampling"/>
+                        <ComboBox SelectedIndex="{Binding MetricsIndex}" Width="200">
+                            <ComboBoxItem Content="every 1 s"/>
+                            <ComboBoxItem Content="every 2 s"/>
+                            <ComboBoxItem Content="every 5 s"/>
+                            <ComboBoxItem Content="every 10 s"/>
+                        </ComboBox>
+                        <TextBlock Classes="faint" FontSize="11.5" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   Text="Status changes arrive instantly over pm2's event bus. Sampling pauses while the window is hidden."/>
+                    </StackPanel>
+                    <ToggleSwitch Content="Closing the window keeps ampm2 in the menu bar" IsChecked="{Binding CloseToMenuBar}" OnContent="" OffContent=""/>
+                    <ToggleSwitch Content="Confirm delete / stop all / flush" IsChecked="{Binding ConfirmDestructive}" OnContent="" OffContent=""/>
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Classes="faint" FontSize="11.5" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="300">
+                            <Run Text="Settings and the Saved list live in "/><Run Text="{Binding DataFolder}"/>
+                        </TextBlock>
+                        <Button Classes="primary" Content="Done" HorizontalAlignment="Right" Command="{Binding CloseSettingsCommand}"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- ================= about ================= -->
+        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding AboutOpen}" PointerPressed="Overlay_PointerPressed" Tag="about">
+            <Border Classes="card" Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28,24" PointerPressed="Card_PointerPressed">
+                <StackPanel Spacing="18">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Classes="icon" VerticalAlignment="Top" Command="{Binding CloseAboutCommand}"><PathIcon Data="{StaticResource IcClose}"/></Button>
+                        <Image Source="/Assets/icon-128.png" Width="56" Height="56" Margin="0,0,16,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding AboutName}" FontSize="22" FontWeight="SemiBold"/>
+                                <Border Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="7,1,8,2" VerticalAlignment="Center">
+                                    <TextBlock Foreground="{DynamicResource Accent}" FontSize="12" FontWeight="SemiBold"><Run Text="v"/><Run Text="{Binding AboutVersion}"/></TextBlock>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{Binding AboutTagline}" Classes="dim" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="16,12">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                            <Grid.Styles><Style Selector="TextBlock.k"><Setter Property="Foreground" Value="{DynamicResource TextDim}"/><Setter Property="FontSize" Value="12"/><Setter Property="Margin" Value="0,0,16,8"/></Style></Grid.Styles>
+                            <TextBlock Grid.Row="0" Classes="k" Text="Author"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AboutAuthor}" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="1" Classes="k" Text="Email"/>
+                            <HyperlinkButton Grid.Row="1" Grid.Column="1" Content="{Binding AboutEmail}" Command="{Binding OpenEmailCommand}" Padding="0" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="2" Classes="k" Text="GitHub" IsVisible="{Binding HasGitHub}"/>
+                            <HyperlinkButton Grid.Row="2" Grid.Column="1" Content="{Binding AboutGitHub}" Command="{Binding OpenGitHubCommand}" Padding="0" Margin="0,0,0,8" IsVisible="{Binding HasGitHub}"/>
+                            <TextBlock Grid.Row="3" Classes="k" Text="Version"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AboutPlatform}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="4" Classes="k" Text="Runtime"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AboutRuntime}" Classes="dim" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="5" Classes="k" Text="License" Margin="0,0,16,0"/>
+                            <StackPanel Grid.Row="5" Grid.Column="1">
+                                <HyperlinkButton Content="{Binding AboutLicense}" Command="{Binding OpenLicenseCommand}" Padding="0"/>
+                                <TextBlock Text="{Binding AboutLicenseSummary}" Classes="dim" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <DockPanel>
+                        <TextBlock Text="{Binding AboutCopyright}" Classes="faint" FontSize="12" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                            <Button Content="Copy details" Command="{Binding CopyAboutCommand}" ToolTip.Tip="Copies version, platform and pm2 details, handy for bug reports"/>
+                            <Button Classes="primary" Content="Close" Command="{Binding CloseAboutCommand}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- ================= confirm dialog ================= -->
+        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding HasDialog}">
+            <Border Classes="card" Width="440" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" DataContext="{Binding Dialog}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Message}" Classes="dim" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                        <Button x:Name="DialogCancel" Content="Cancel" Command="{Binding #Root.DataContext.DialogCancelCommand}"/>
+                        <Button x:Name="DialogOk" Content="{Binding OkText}" Command="{Binding #Root.DataContext.DialogOkCommand}"
+                                Classes.primary="{Binding !Danger}" Classes.danger="{Binding Danger}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+    </Grid>
+</Window>

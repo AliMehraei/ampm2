@@ -1,0 +1,143 @@
+<Window x:Class="Ampm2.AddProcessWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="New process · ampm2" Width="640" SizeToContent="Height" MaxHeight="900" ResizeMode="NoResize"
+        Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}" FontFamily="{StaticResource UiFont}" FontSize="13"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="26,20,26,22">
+            <TextBlock Text="Start a new process" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="ampm2 writes a pm2 app config and runs pm2 start with it." Foreground="{DynamicResource TextDim}" Margin="0,3,0,16"/>
+
+            <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,18">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="KindScript" Style="{StaticResource Segment}" GroupName="kind" Content="Script / program" IsChecked="True" Checked="Kind_Checked"/>
+                    <RadioButton x:Name="KindNpm" Style="{StaticResource Segment}" GroupName="kind" Content="npm script" Checked="Kind_Checked"/>
+                    <RadioButton x:Name="KindEco" Style="{StaticResource Segment}" GroupName="kind" Content="Ecosystem file" Checked="Kind_Checked"/>
+                </StackPanel>
+            </Border>
+
+            <!-- script -->
+            <StackPanel x:Name="ScriptPanel">
+                <TextBlock Style="{StaticResource Label}" Text="Script or executable"/>
+                <DockPanel Margin="0,0,0,14">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseScript_Click"/>
+                    <TextBox x:Name="ScriptBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" TextChanged="Script_TextChanged"/>
+                </DockPanel>
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Label}" Text="Interpreter"/>
+                        <ComboBox x:Name="InterpreterBox" SelectionChanged="Interpreter_Changed">
+                            <ComboBoxItem Content="Auto (by file type)" Tag="auto" IsSelected="True"/>
+                            <ComboBoxItem Content="node" Tag="node"/>
+                            <ComboBoxItem Content="python" Tag="python"/>
+                            <ComboBoxItem Content="bun" Tag="bun"/>
+                            <ComboBoxItem Content="none (run the executable)" Tag="none"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource Label}" Text="Node arguments"/>
+                        <TextBox x:Name="NodeArgsBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" ToolTip="e.g. --max-old-space-size=4096"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- npm -->
+            <StackPanel x:Name="NpmPanel" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource Label}" Text="Project folder (contains package.json)"/>
+                <DockPanel Margin="0,0,0,14">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseProject_Click"/>
+                    <TextBox x:Name="ProjectBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" LostFocus="Project_LostFocus"/>
+                </DockPanel>
+                <TextBlock Style="{StaticResource Label}" Text="npm script"/>
+                <ComboBox x:Name="NpmScriptBox" Margin="0,0,0,4" IsEditable="False"/>
+                <TextBlock x:Name="NpmHint" Style="{StaticResource Hint}" Margin="0,0,0,14"
+                           Text="Runs node npm-cli.js run &lt;script&gt;, which works on Windows (pm2 cannot start npm.cmd directly)."/>
+            </StackPanel>
+
+            <!-- ecosystem -->
+            <StackPanel x:Name="EcoPanel" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource Label}" Text="Ecosystem file (.config.js, .json, .yml)"/>
+                <DockPanel Margin="0,0,0,14">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseEco_Click"/>
+                    <TextBox x:Name="EcoBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                </DockPanel>
+                <TextBlock Style="{StaticResource Label}" Text="Only these apps (optional, comma separated)"/>
+                <TextBox x:Name="OnlyBox" Style="{StaticResource Field}" Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,14" Text="pm2 start &lt;file&gt; --only &lt;apps&gt;"/>
+            </StackPanel>
+
+            <!-- common -->
+            <StackPanel x:Name="CommonPanel">
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Label}" Text="Name"/>
+                        <TextBox x:Name="NameBox" Style="{StaticResource Field}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" x:Name="CwdPanel">
+                        <TextBlock Style="{StaticResource Label}" Text="Working directory"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE8B7;" Margin="4,0,0,0" Click="BrowseCwd_Click" ToolTip="Browse"/>
+                            <TextBox x:Name="CwdBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Style="{StaticResource Label}" Text="Arguments"/>
+                <TextBox x:Name="ArgsBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0,0,0,14"/>
+
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Label}" Text="Instances"/>
+                        <ComboBox x:Name="InstancesBox" SelectionChanged="Instances_Changed">
+                            <ComboBoxItem Content="1 (fork)" Tag="1" IsSelected="True"/>
+                            <ComboBoxItem Content="2 (cluster)" Tag="2"/>
+                            <ComboBoxItem Content="4 (cluster)" Tag="4"/>
+                            <ComboBoxItem Content="all cores (cluster)" Tag="max"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource Label}" Text="Restart above memory"/>
+                        <TextBox x:Name="MaxMemBox" Style="{StaticResource Field}" ToolTip="e.g. 500M or 2G; empty = never"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Style="{StaticResource Label}" Text="Restart delay (ms)"/>
+                        <TextBox x:Name="DelayBox" Style="{StaticResource Field}" ToolTip="Wait before restarting a crashed app"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Style="{StaticResource Label}" Text="Environment variables (KEY=value, one per line)"/>
+                <TextBox x:Name="EnvBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" AcceptsReturn="True"
+                         Height="84" VerticalContentAlignment="Top" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,14"/>
+
+                <WrapPanel Margin="0,0,0,6">
+                    <CheckBox x:Name="AutoRestartBox" Style="{StaticResource Switch}" Content="Auto restart" IsChecked="True" Margin="0,0,22,10"/>
+                    <CheckBox x:Name="WatchBox" Style="{StaticResource Switch}" Content="Watch files" Margin="0,0,22,10"/>
+                    <CheckBox x:Name="TimeBox" Style="{StaticResource Switch}" Content="Timestamp log lines" IsChecked="True" Margin="0,0,22,10"/>
+                </WrapPanel>
+            </StackPanel>
+
+            <CheckBox x:Name="SaveBox" Style="{StaticResource Switch}" Content="Save the process list afterwards (survives pm2 restarts)" IsChecked="True" Margin="0,0,0,18"/>
+
+            <Border Background="{DynamicResource ErroredSoft}" CornerRadius="8" Padding="12,9" Margin="0,0,0,14" x:Name="ErrorPanel" Visibility="Collapsed">
+                <TextBlock x:Name="ErrorText" Foreground="{DynamicResource Errored}" TextWrapping="Wrap" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+            </Border>
+
+            <DockPanel>
+                <TextBlock x:Name="PreviewText" DockPanel.Dock="Left" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0" MaxWidth="330" TextTrimming="CharacterEllipsis"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Btn}" Content="Cancel" Margin="0,0,8,0" IsCancel="True"/>
+                    <Button x:Name="StartButton" AutomationProperties.Name="Start" Style="{StaticResource BtnPrimary}" IsDefault="True" Click="Start_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE768;" FontSize="11" Margin="0,0,7,0"/>
+                            <TextBlock x:Name="StartText" Text="Start"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

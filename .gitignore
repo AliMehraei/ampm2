@@ -1,0 +1,24 @@
+# build output
+bin/
+obj/
+dist/
+publish/
+publish-mac/
+publish-linux-test/
+setup/
+mac/
+TestResults/
+
+# local tool caches (rcodesign, Linux test archives)
+.wsl-cache/
+
+# editors / OS
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

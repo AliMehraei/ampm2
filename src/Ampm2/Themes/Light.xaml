@@ -1,0 +1,50 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="C.Bg">#F4F5F9</Color>
+    <Color x:Key="C.Surface">#FFFFFF</Color>
+    <Color x:Key="C.Surface2">#F0F2F7</Color>
+    <Color x:Key="C.Border">#E1E4EC</Color>
+    <Color x:Key="C.Hover">#F2F4FA</Color>
+    <Color x:Key="C.Selected">#E9EBFF</Color>
+    <Color x:Key="C.Text">#141821</Color>
+    <Color x:Key="C.TextDim">#5E677A</Color>
+    <Color x:Key="C.TextFaint">#98A0B1</Color>
+    <Color x:Key="C.Accent">#5458E8</Color>
+    <Color x:Key="C.AccentText">#FFFFFF</Color>
+    <Color x:Key="C.AccentSoft">#E6E7FD</Color>
+    <Color x:Key="C.Online">#12A36B</Color>
+    <Color x:Key="C.OnlineSoft">#DDF5EA</Color>
+    <Color x:Key="C.Stopped">#6B7385</Color>
+    <Color x:Key="C.StoppedSoft">#ECEEF2</Color>
+    <Color x:Key="C.Errored">#E0484E</Color>
+    <Color x:Key="C.ErroredSoft">#FCE5E6</Color>
+    <Color x:Key="C.Launching">#C98A0B</Color>
+    <Color x:Key="C.LaunchingSoft">#FBF0D6</Color>
+    <Color x:Key="C.Overlay">#66101320</Color>
+    <Color x:Key="C.LogErr">#C9323A</Color>
+    <Color x:Key="C.LogBg">#FAFBFD</Color>
+
+    <SolidColorBrush x:Key="Bg" Color="{StaticResource C.Bg}"/>
+    <SolidColorBrush x:Key="Surface" Color="{StaticResource C.Surface}"/>
+    <SolidColorBrush x:Key="Surface2" Color="{StaticResource C.Surface2}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource C.Border}"/>
+    <SolidColorBrush x:Key="Hover" Color="{StaticResource C.Hover}"/>
+    <SolidColorBrush x:Key="Selected" Color="{StaticResource C.Selected}"/>
+    <SolidColorBrush x:Key="Text" Color="{StaticResource C.Text}"/>
+    <SolidColorBrush x:Key="TextDim" Color="{StaticResource C.TextDim}"/>
+    <SolidColorBrush x:Key="TextFaint" Color="{StaticResource C.TextFaint}"/>
+    <SolidColorBrush x:Key="Accent" Color="{StaticResource C.Accent}"/>
+    <SolidColorBrush x:Key="AccentText" Color="{StaticResource C.AccentText}"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="{StaticResource C.AccentSoft}"/>
+    <SolidColorBrush x:Key="Online" Color="{StaticResource C.Online}"/>
+    <SolidColorBrush x:Key="OnlineSoft" Color="{StaticResource C.OnlineSoft}"/>
+    <SolidColorBrush x:Key="Stopped" Color="{StaticResource C.Stopped}"/>
+    <SolidColorBrush x:Key="StoppedSoft" Color="{StaticResource C.StoppedSoft}"/>
+    <SolidColorBrush x:Key="Errored" Color="{StaticResource C.Errored}"/>
+    <SolidColorBrush x:Key="ErroredSoft" Color="{StaticResource C.ErroredSoft}"/>
+    <SolidColorBrush x:Key="Launching" Color="{StaticResource C.Launching}"/>
+    <SolidColorBrush x:Key="LaunchingSoft" Color="{StaticResource C.LaunchingSoft}"/>
+    <SolidColorBrush x:Key="Overlay" Color="{StaticResource C.Overlay}"/>
+    <SolidColorBrush x:Key="LogErr" Color="{StaticResource C.LogErr}"/>
+    <SolidColorBrush x:Key="LogBg" Color="{StaticResource C.LogBg}"/>
+</ResourceDictionary>

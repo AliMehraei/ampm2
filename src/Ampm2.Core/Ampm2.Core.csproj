@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Shared, UI-free core used by the Windows (WPF) and macOS (Avalonia) apps:
+       pm2 wire protocol, event bus, CLI runner, process metrics, Saved list. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Ampm2</RootNamespace>
+    <AssemblyName>Ampm2.Core</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.1.0</Version>
+  </PropertyGroup>
+</Project>

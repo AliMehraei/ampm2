@@ -1,0 +1,1145 @@
+<Window x:Class="Ampm2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Ampm2.Ui"
+        xmlns:core="clr-namespace:Ampm2;assembly=Ampm2.Core"
+        Title="ampm2" Width="1180" Height="720" MinWidth="860" MinHeight="480"
+        Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
+        FontFamily="{StaticResource UiFont}" FontSize="13"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding AddCommand}"/>
+        <KeyBinding Key="R" Modifiers="Control" Command="{Binding RestartCommand}"/>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}"/>
+        <KeyBinding Key="L" Modifiers="Control" Command="{Binding ShowLogsCommand}"/>
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <!-- one row of the process table -->
+        <Style x:Key="RowItem" TargetType="ListBoxItem">
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="8" Margin="6,1" Padding="10,0">
+                            <Grid>
+                                <Border x:Name="bar" Width="3" CornerRadius="2" HorizontalAlignment="Left" Margin="-8,10,0,10"
+                                        Background="{DynamicResource Accent}" Visibility="Collapsed"/>
+                                <ContentPresenter/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource Hover}"/></Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource Selected}"/>
+                                <Setter TargetName="bar" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- row action buttons fade in on hover/selection -->
+        <Style x:Key="RowActions" TargetType="StackPanel">
+            <Setter Property="Opacity" Value="0"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="Pill" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="8,2,9,3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
+
+        <Style x:Key="ValueBox" TargetType="TextBox">
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="KeyText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextDim}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Padding" Value="0,1,0,0"/>
+        </Style>
+
+        <Style x:Key="StatChip" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ================= Header ================= -->
+        <Grid Grid.Row="0" Margin="20,14,20,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Image x:Name="LogoImage" Width="30" Height="30" Margin="0,0,11,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="ampm2" FontSize="17" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
+                        <Ellipse Width="7" Height="7" Margin="0,1,6,0" VerticalAlignment="Center">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="{DynamicResource Launching}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True"><Setter Property="Fill" Value="{DynamicResource Online}"/></DataTrigger>
+                                        <DataTrigger Binding="{Binding ShowError}" Value="True"><Setter Property="Fill" Value="{DynamicResource Errored}"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="{Binding StateText}" Foreground="{DynamicResource TextDim}" FontSize="11.5"/>
+                        <Border Background="{DynamicResource AccentSoft}" CornerRadius="5" Padding="6,0,7,1" Margin="8,0,0,0"
+                                Visibility="{Binding IsElevated, Converter={StaticResource BoolVis}}"
+                                ToolTip="ampm2 is running as administrator">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xEA18;" FontSize="10" Foreground="{DynamicResource Accent}" Margin="0,1,4,0"/>
+                                <TextBlock Text="admin" FontSize="11" Foreground="{DynamicResource Accent}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- summary -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding IsConnected, Converter={StaticResource BoolVis}}">
+                <Border Style="{StaticResource StatChip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource Online}" Margin="0,1,7,0"/>
+                        <TextBlock Text="{Binding OnlineCount}" FontWeight="SemiBold"/>
+                        <TextBlock Text=" online" Foreground="{DynamicResource TextDim}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource StatChip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource Stopped}" Margin="0,1,7,0"/>
+                        <TextBlock Text="{Binding StoppedCount}" FontWeight="SemiBold"/>
+                        <TextBlock Text=" stopped" Foreground="{DynamicResource TextDim}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource StatChip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource Errored}" Margin="0,1,7,0"/>
+                        <TextBlock Text="{Binding ErroredCount}" FontWeight="SemiBold"/>
+                        <TextBlock Text=" errored" Foreground="{DynamicResource TextDim}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource StatChip}" ToolTip="Total CPU of all online process trees (100% = one core)">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="CPU " Foreground="{DynamicResource TextDim}"/>
+                        <TextBlock Text="{Binding TotalCpuText}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource StatChip}" ToolTip="Total working set of all online process trees">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="RAM " Foreground="{DynamicResource TextDim}"/>
+                        <TextBlock Text="{Binding TotalMemText}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- global actions -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource IconBtn}" Content="&#xE74E;" ToolTip="Save process list (pm2 save) · Ctrl+S" Command="{Binding SaveCommand}"/>
+                <Button Style="{StaticResource IconBtn}" Content="&#xE72C;" ToolTip="Restart all" Command="{Binding RestartAllCommand}"/>
+                <Button Style="{StaticResource IconBtn}" Content="&#xE71A;" ToolTip="Stop all" Command="{Binding StopAllCommand}"/>
+                <Button x:Name="SettingsButton" Style="{StaticResource IconBtn}" Content="&#xE713;" ToolTip="Settings" Command="{Binding OpenSettingsCommand}"/>
+                <Button x:Name="MoreButton" Style="{StaticResource IconBtn}" Content="&#xE712;" ToolTip="More" Click="MoreButton_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Resurrect saved processes" Tag="&#xE7A7;" Command="{Binding ResurrectCommand}"/>
+                            <MenuItem Header="Flush all logs…" Tag="&#xE894;" Command="{Binding FlushCommand}" CommandParameter="all"/>
+                            <MenuItem Header="Clean up stray daemons…" Tag="&#xE75C;" Command="{Binding CleanStraysCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="Open pm2 folder" Tag="&#xE8B7;" Command="{Binding OpenPathCommand}" CommandParameter="{Binding Pm2Home}"/>
+                            <MenuItem Header="Kill pm2 daemon…" Tag="&#xE7E8;" Command="{Binding KillDaemonCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="Settings" Tag="&#xE713;" Command="{Binding OpenSettingsCommand}"/>
+                            <MenuItem Header="About ampm2" Tag="&#xE946;" Command="{Binding OpenAboutCommand}"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+                <Button x:Name="AddButton" AutomationProperties.Name="New process" Style="{StaticResource BtnPrimary}" Margin="10,0,0,0" Command="{Binding AddCommand}" ToolTip="Start a new process · Ctrl+N">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE710;" FontSize="12" Margin="0,0,7,0"/>
+                        <TextBlock Text="New process"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ================= Banners ================= -->
+        <StackPanel Grid.Row="1" Margin="20,0,20,10">
+            <Border Background="{DynamicResource LaunchingSoft}" CornerRadius="10" Padding="14,9"
+                    Visibility="{Binding HasStrays, Converter={StaticResource BoolVis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE7BA;" Foreground="{DynamicResource Launching}" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Center">
+                        <Run Text="{Binding StrayText, Mode=OneWay}" FontWeight="SemiBold"/>
+                        <Run Text=" — left behind by pm2 commands that could not reach the real daemon. They manage nothing." Foreground="{DynamicResource TextDim}"/>
+                    </TextBlock>
+                    <Button Grid.Column="2" Style="{StaticResource Btn}" Content="Clean up…" Padding="10,4" Margin="10,0,0,0" Command="{Binding CleanStraysCommand}"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- ================= Content ================= -->
+        <Grid Grid.Row="2" Margin="20,0,20,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="420"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition x:Name="DetailColumn" Width="420" MinWidth="320" MaxWidth="900"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- process list card -->
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- toolbar -->
+                    <StackPanel Margin="14,12,14,8">
+                        <!-- view switcher -->
+                        <DockPanel Margin="0,0,0,10">
+                            <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="ViewProcesses" Style="{StaticResource Segment}" GroupName="view" IsChecked="True" Tag="processes" Checked="View_Checked">
+                                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE9F9;" FontSize="12" Margin="0,0,7,0"/><TextBlock Text="Processes"/></StackPanel>
+                                    </RadioButton>
+                                    <RadioButton x:Name="ViewSaved" Style="{StaticResource Segment}" GroupName="view" Tag="saved" Checked="View_Checked"
+                                                 ToolTip="ampm2's own copy of your process list: survives pm2 losing its list, can be imported and exported">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE728;" FontSize="12" Margin="0,0,7,0"/>
+                                            <TextBlock><Run Text="Saved list "/><Run Text="{Binding SavedCount, Mode=OneWay}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                        </StackPanel>
+                                    </RadioButton>
+                                </StackPanel>
+                            </Border>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE72C;" ToolTip="Refresh · F5" Command="{Binding RefreshCommand}"
+                                    HorizontalAlignment="Right" Visibility="{Binding IsProcessView, Converter={StaticResource BoolVis}}"/>
+                            <CheckBox Style="{StaticResource Switch}" Content="Keep in sync with pm2" IsChecked="{Binding AutoSyncSaved}" HorizontalAlignment="Right"
+                                      ToolTip="Every app pm2 runs is copied here automatically. Apps removed from pm2 stay saved."
+                                      Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}"/>
+                        </DockPanel>
+
+                        <!-- processes: search + filters -->
+                        <Grid IsEnabled="{Binding ShowList}" Visibility="{Binding IsProcessView, Converter={StaticResource BoolVis}}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid>
+                            <TextBox x:Name="SearchBox" Style="{StaticResource Field}" Padding="30,6,9,6" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" Margin="11,0,0,0" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False"/>
+                            <TextBlock Text="Search name, id, script…  (Ctrl+F)" Margin="31,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <Border Grid.Column="1" Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" Margin="12,0,0,0" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource Segment}" GroupName="flt" Tag="all" Checked="Filter_Checked" IsChecked="True">
+                                    <TextBlock><Run Text="All "/><Run Text="{Binding TotalCount, Mode=OneWay}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Segment}" GroupName="flt" Tag="online" Checked="Filter_Checked" Content="Online"/>
+                                <RadioButton Style="{StaticResource Segment}" GroupName="flt" Tag="stopped" Checked="Filter_Checked" Content="Stopped"/>
+                                <RadioButton Style="{StaticResource Segment}" GroupName="flt" Tag="errored" Checked="Filter_Checked" Content="Errored"/>
+                            </StackPanel>
+                        </Border>
+                        </Grid>
+
+                        <!-- saved list: actions -->
+                        <WrapPanel Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}">
+                            <Button Style="{StaticResource BtnPrimary}" Padding="11,5" Margin="0,0,6,6" Command="{Binding StartMissingCommand}"
+                                    ToolTip="Start every saved app that pm2 does not have (pm2 start with the saved definitions)">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE768;" FontSize="11" Margin="0,0,6,0"/>
+                                    <TextBlock><Run Text="Start missing "/><Run Text="{Binding MissingCount, Mode=OneWay}"/></TextBlock>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" Command="{Binding SyncSavedNowCommand}" ToolTip="Copy the current pm2 list into the Saved list now">
+                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE74E;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Save from pm2"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" Command="{Binding ImportSavedCommand}"
+                                    ToolTip="Ecosystem .json / .config.js, or pm2's dump.pm2">
+                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE8B5;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Import…"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" Command="{Binding ExportSavedCommand}" CommandParameter="all"
+                                    ToolTip="Save everything as a pm2 ecosystem file (pm2 start ecosystem.json)">
+                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xEDE1;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Export all…"/></StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource IconBtn}" Content="&#xE8B7;" ToolTip="Show the saved-list file in Explorer" Margin="0,0,0,6" Command="{Binding OpenSavedFileCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <!-- column headers -->
+                    <Grid Grid.Row="1" Margin="16,2,16,4" Visibility="{Binding ShowList, Converter={StaticResource BoolVis}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" MinWidth="150"/>
+                            <ColumnDefinition Width="92"/>
+                            <ColumnDefinition Width="92"/>
+                            <ColumnDefinition Width="84"/>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="128"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Style="{StaticResource ColHeader}" Content="NAME" Command="{Binding SortCommand}" CommandParameter="name" Margin="-4,0,0,0"/>
+                        <Button Grid.Column="1" Style="{StaticResource ColHeader}" Content="STATUS" Command="{Binding SortCommand}" CommandParameter="status"/>
+                        <Button Grid.Column="2" Style="{StaticResource ColHeader}" Content="CPU" Command="{Binding SortCommand}" CommandParameter="cpu"/>
+                        <Button Grid.Column="3" Style="{StaticResource ColHeader}" Content="MEMORY" Command="{Binding SortCommand}" CommandParameter="mem"/>
+                        <Button Grid.Column="4" Style="{StaticResource ColHeader}" Content="UPTIME" Command="{Binding SortCommand}" CommandParameter="uptime"/>
+                        <Button Grid.Column="5" Style="{StaticResource ColHeader}" Content="&#x21BB;" ToolTip="Restarts" Command="{Binding SortCommand}" CommandParameter="restarts"/>
+                        <Button Grid.Column="6" Style="{StaticResource ColHeader}" Content="ID" Command="{Binding SortCommand}" CommandParameter="id" HorizontalAlignment="Right"/>
+                    </Grid>
+
+                    <!-- rows -->
+                    <ListBox x:Name="ProcessList" Grid.Row="2" ItemsSource="{Binding View}" SelectedItem="{Binding Selected}"
+                             SelectionMode="Extended" Background="Transparent" BorderThickness="0"
+                             ItemContainerStyle="{StaticResource RowItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             VirtualizingPanel.IsVirtualizing="False" Padding="0,0,0,8"
+                             Visibility="{Binding ShowList, Converter={StaticResource BoolVis}}"
+                             SelectionChanged="ProcessList_SelectionChanged" KeyDown="ProcessList_KeyDown" MouseDoubleClick="ProcessList_MouseDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type ui:ProcessItem}">
+                                <Grid Height="50" Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" MinWidth="150"/>
+                                        <ColumnDefinition Width="92"/>
+                                        <ColumnDefinition Width="92"/>
+                                        <ColumnDefinition Width="84"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="44"/>
+                                        <ColumnDefinition Width="128"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Start" Tag="&#xE768;" Command="{Binding PlacementTarget.Tag.StartCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" IsEnabled="{Binding CanStart}"/>
+                                            <MenuItem Header="Stop" Tag="&#xE71A;" Command="{Binding PlacementTarget.Tag.StopCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" IsEnabled="{Binding CanStop}"/>
+                                            <MenuItem Header="Restart" Tag="&#xE72C;" Command="{Binding PlacementTarget.Tag.RestartCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Reload (zero-downtime)" Tag="&#xE945;" Command="{Binding PlacementTarget.Tag.ReloadCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Logs" Tag="&#xE8A5;" Command="{Binding PlacementTarget.Tag.ShowLogsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Open working folder" Tag="&#xE8B7;" Command="{Binding PlacementTarget.Tag.OpenPathCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding P.Cwd}"/>
+                                            <MenuItem Header="Reset restart counter" Tag="&#xE777;" Command="{Binding PlacementTarget.Tag.ResetCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Flush logs…" Tag="&#xE894;" Command="{Binding PlacementTarget.Tag.FlushCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Delete…" Tag="&#xE74D;" InputGestureText="Del" Command="{Binding PlacementTarget.Tag.DeleteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <Grid.Tag>
+                                        <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                    </Grid.Tag>
+
+                                    <!-- name -->
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" Margin="0,1,9,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                                            <Border Background="{DynamicResource Surface2}" CornerRadius="4" Padding="5,0,5,1" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    Visibility="{Binding IsCluster, Converter={StaticResource BoolVis}}">
+                                                <TextBlock Text="{Binding Mode}" FontSize="10.5" Foreground="{DynamicResource TextDim}"/>
+                                            </Border>
+                                            <Border Background="{DynamicResource AccentSoft}" CornerRadius="4" Padding="5,0,5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Namespace}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Namespace}" FontSize="10.5" Foreground="{DynamicResource Accent}"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding P.Script}" FontSize="11" Foreground="{DynamicResource TextFaint}" Margin="17,2,0,0"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding P.Script}"/>
+                                    </StackPanel>
+
+                                    <!-- status -->
+                                    <Border Grid.Column="1" Style="{StaticResource Pill}" Background="{Binding StatusSoftBrush}">
+                                        <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Border>
+
+                                    <!-- cpu -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CpuText}" FontSize="12.5"/>
+                                        <Border Width="56" Height="3" CornerRadius="2" Background="{DynamicResource Surface2}" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                            <Border CornerRadius="2" Background="{DynamicResource Accent}" RenderTransformOrigin="0,0.5">
+                                                <Border.RenderTransform><ScaleTransform ScaleX="{Binding CpuBar}"/></Border.RenderTransform>
+                                            </Border>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="3" Text="{Binding MemText}" VerticalAlignment="Center" FontSize="12.5" ToolTip="{Binding TreeText}"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding UptimeText}" VerticalAlignment="Center" FontSize="12.5" Foreground="{DynamicResource TextDim}"/>
+                                    <TextBlock Grid.Column="5" Text="{Binding Restarts}" VerticalAlignment="Center" FontSize="12.5">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextFaint}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasRestarts}" Value="True"><Setter Property="Foreground" Value="{DynamicResource Launching}"/></DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!-- id + actions -->
+                                    <Grid Grid.Column="6">
+                                        <TextBlock Text="{Binding IdText}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{DynamicResource TextFaint}" Margin="0,0,4,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Hidden"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Hidden"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <StackPanel Style="{StaticResource RowActions}" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE768;" ToolTip="Start" Foreground="{DynamicResource Online}"
+                                                    Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                                    Visibility="{Binding CanStart, Converter={StaticResource BoolVis}}"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE769;" ToolTip="Stop (pause)"
+                                                    Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                                    Visibility="{Binding CanStop, Converter={StaticResource BoolVis}}"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE72C;" ToolTip="Restart"
+                                                    Command="{Binding DataContext.RestartCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE8A5;" ToolTip="Logs"
+                                                    Command="{Binding DataContext.ShowLogsCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
+                                            <Button Style="{StaticResource IconBtnDanger}" Content="&#xE74D;" ToolTip="Delete"
+                                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="working…" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5" Foreground="{DynamicResource Accent}"
+                                                   Background="{DynamicResource Selected}" Padding="8,2"
+                                                   Visibility="{Binding Busy, Converter={StaticResource BoolVis}}"/>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- saved list rows -->
+                    <ListBox x:Name="SavedList" Grid.Row="2" ItemsSource="{Binding SavedItems}" SelectedItem="{Binding SelectedSaved}"
+                             SelectionMode="Extended" Background="Transparent" BorderThickness="0" Padding="0,0,0,8"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="False"
+                             Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}"
+                             SelectionChanged="SavedList_SelectionChanged" KeyDown="SavedList_KeyDown">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource RowItem}"/>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type ui:SavedApp}">
+                                <Grid Height="50" Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="112"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.Tag>
+                                        <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                    </Grid.Tag>
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Start in pm2" Tag="&#xE768;" Command="{Binding PlacementTarget.Tag.StartSavedCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Export…" Tag="&#xEDE1;" Command="{Binding PlacementTarget.Tag.ExportSavedCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Open working folder" Tag="&#xE8B7;" Command="{Binding PlacementTarget.Tag.OpenPathCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding Cwd}"/>
+                                            <Separator/>
+                                            <MenuItem Header="Remove from Saved list…" Tag="&#xE74D;" InputGestureText="Del" Command="{Binding PlacementTarget.Tag.RemoveSavedCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Fill="{Binding StateBrush}" Margin="0,1,9,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Summary}" FontSize="11" Foreground="{DynamicResource TextFaint}" Margin="10,1,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Script}" FontSize="11" Foreground="{DynamicResource TextFaint}" Margin="17,2,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Script}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Style="{StaticResource Pill}" Background="{Binding StateSoftBrush}" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <Grid Grid.Column="2">
+                                        <TextBlock Text="{Binding UpdatedText}" FontSize="11" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Hidden"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Hidden"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <StackPanel Style="{StaticResource RowActions}" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE768;" ToolTip="Start in pm2" Foreground="{DynamicResource Online}"
+                                                    Command="{Binding DataContext.StartSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                                    Visibility="{Binding IsMissing, Converter={StaticResource BoolVis}}"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xEDE1;" ToolTip="Export…"
+                                                    Command="{Binding DataContext.ExportSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
+                                            <Button Style="{StaticResource IconBtnDanger}" Content="&#xE74D;" ToolTip="Remove from Saved list"
+                                                    Command="{Binding DataContext.RemoveSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="470">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSavedView}" Value="True"/>
+                                            <Condition Binding="{Binding SavedEmpty}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE728;" FontSize="32" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Nothing saved yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
+                                   Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps even after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
+                    </StackPanel>
+
+                    <!-- saved list bulk bar -->
+                    <Border Grid.Row="3" Background="{DynamicResource Surface2}" CornerRadius="0,0,12,12" Padding="14,8"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSavedView}" Value="True"/>
+                                            <Condition Binding="{Binding HasSavedMultiSelection}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,14,0"><Run Text="{Binding SavedSelectedCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" selected" Foreground="{DynamicResource TextDim}"/></TextBlock>
+                            <Button Style="{StaticResource Btn}" Content="Start missing" Padding="10,4" Margin="0,0,6,0" Command="{Binding StartSavedCommand}"/>
+                            <Button Style="{StaticResource Btn}" Content="Export…" Padding="10,4" Margin="0,0,6,0" Command="{Binding ExportSavedCommand}"/>
+                            <Button Style="{StaticResource Btn}" Content="Remove…" Padding="10,4" Command="{Binding RemoveSavedCommand}" Foreground="{DynamicResource Errored}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- bulk bar -->
+                    <Border Grid.Row="3" Background="{DynamicResource Surface2}" CornerRadius="0,0,12,12" Padding="14,8"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Visibility="{Binding HasMultiSelection, Converter={StaticResource BoolVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,14,0"><Run Text="{Binding SelectedCount, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" selected" Foreground="{DynamicResource TextDim}"/></TextBlock>
+                            <Button Style="{StaticResource Btn}" Content="Start" Padding="10,4" Margin="0,0,6,0" Command="{Binding StartCommand}"/>
+                            <Button Style="{StaticResource Btn}" Content="Stop" Padding="10,4" Margin="0,0,6,0" Command="{Binding StopCommand}"/>
+                            <Button Style="{StaticResource Btn}" Content="Restart" Padding="10,4" Margin="0,0,6,0" Command="{Binding RestartCommand}"/>
+                            <Button Style="{StaticResource Btn}" Content="Delete…" Padding="10,4" Command="{Binding DeleteCommand}" Foreground="{DynamicResource Errored}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== states ===== -->
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460"
+                                Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE9F9;" FontSize="34" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="No processes yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock Text="pm2 is running but manages nothing. Start a new process, or restore the list you saved earlier." TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                            <Button Style="{StaticResource BtnPrimary}" Content="New process" Command="{Binding AddCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource Btn}" Content="Resurrect saved list" Command="{Binding ResurrectCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowConnecting, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE895;" FontSize="30" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Connecting to pm2…" Foreground="{DynamicResource TextDim}" Margin="0,12,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="480"
+                                Visibility="{Binding ShowNotRunning, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE7E8;" FontSize="32" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="The pm2 daemon is not running" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
+                                   Text="Start it here. ampm2 keeps watching and connects automatically when pm2 starts elsewhere."/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                            <Button Style="{StaticResource BtnPrimary}" Content="Start pm2" Command="{Binding StartDaemonCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource Btn}" Content="Start + resurrect" Command="{Binding ResurrectCommand}" Margin="0,0,8,0"
+                                    ToolTip="Start pm2 and restore pm2's own saved list (dump.pm2)"/>
+                            <Button Style="{StaticResource Btn}" Command="{Binding StartMissingCommand}"
+                                    ToolTip="Start pm2 with the apps in ampm2's Saved list">
+                                <TextBlock><Run Text="Start from Saved list ("/><Run Text="{Binding SavedCount, Mode=OneWay}"/><Run Text=")"/></TextBlock>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" TextAlignment="Center" Margin="0,12,0,0"
+                                   Text="Tip: a daemon started by a non-admin ampm2 is non-elevated too, so normal terminals can use pm2 without leaving stray daemons behind."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500"
+                                Visibility="{Binding ShowAccessDenied, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xEA18;" FontSize="34" Foreground="{DynamicResource Accent}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="pm2 is running as administrator" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
+                                   Text="The daemon was started from an elevated terminal, and Windows only lets elevated programs talk to it. Relaunch ampm2 as administrator to manage it."/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                            <Button Style="{StaticResource BtnPrimary}" Command="{Binding RelaunchElevatedCommand}" CommandParameter="remember" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Glyph}" Text="&#xEA18;" FontSize="12" Margin="0,0,7,0"/>
+                                    <TextBlock Text="Relaunch as admin, and don't ask again"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Btn}" Content="Just this once" Command="{Binding RelaunchElevatedCommand}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" TextAlignment="Center" Margin="0,12,0,0"
+                                   Text="&quot;Don't ask again&quot; creates a scheduled task that starts ampm2 elevated without a UAC prompt. You can remove it in Settings."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520"
+                                Visibility="{Binding ShowNoPm2, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE896;" FontSize="32" Foreground="{DynamicResource Accent}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="pm2 is not installed" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
+                                   Text="ampm2 can install what is missing: Node.js LTS via winget, then pm2 via npm."/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                            <Button Style="{StaticResource Btn}" Content="1 · Install Node.js" Command="{Binding InstallNodeCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="2 · Install pm2" Command="{Binding InstallPm2Command}"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding InstallLog}" Style="{StaticResource Hint}" FontFamily="{StaticResource MonoFont}" TextAlignment="Center" Margin="0,12,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="480"
+                                Visibility="{Binding ShowError, Converter={StaticResource BoolVis}}">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xEA39;" FontSize="32" Foreground="{DynamicResource Errored}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Could not talk to pm2" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"/>
+                        <Button Style="{StaticResource Btn}" Content="Retry" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="14" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          ResizeBehavior="PreviousAndNext" Focusable="False" DragCompleted="Splitter_DragCompleted"/>
+
+            <!-- detail card -->
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Grid>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowNoSelection}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE8FD;" FontSize="28" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Select a process to see its details" Foreground="{DynamicResource TextDim}" Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                    <!-- saved app detail -->
+                    <Grid DataContext="{Binding SelectedSaved}" Visibility="{Binding DataContext.ShowSavedDetail, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Margin="18,16,18,10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
+                                <Border Style="{StaticResource Pill}" Background="{Binding StateSoftBrush}" Margin="10,2,0,0">
+                                    <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Foreground="{DynamicResource TextDim}" FontSize="12" Margin="0,3,0,0">
+                                <Run Text="{Binding Summary, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding UpdatedText, Mode=OneWay}"/>
+                            </TextBlock>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Button Style="{StaticResource BtnPrimary}" Padding="11,5" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.StartSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                        Visibility="{Binding IsMissing, Converter={StaticResource BoolVis}}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE768;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Start in pm2"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.ExportSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xEDE1;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Export…"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" Foreground="{DynamicResource Errored}"
+                                        Command="{Binding DataContext.RemoveSavedCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Remove…"/></StackPanel>
+                                </Button>
+                            </WrapPanel>
+                            <TextBlock Style="{StaticResource Label}" Margin="0,6,0,0"
+                                       Text="Definition · pm2 ecosystem app (edit and save to change how it starts)"/>
+                        </StackPanel>
+                        <Border Grid.Row="1" Background="{DynamicResource LogBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,1">
+                            <TextBox x:Name="DefinitionBox" Text="{Binding DataContext.DefinitionText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                     Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
+                                     SelectionBrush="{DynamicResource Accent}" Padding="14,10"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                        </Border>
+                        <StackPanel Grid.Row="2" Margin="18,10,18,14">
+                            <TextBlock Text="{Binding DataContext.DefinitionError, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="{DynamicResource Errored}"
+                                       TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8"
+                                       Visibility="{Binding DataContext.HasDefinitionError, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Style="{StaticResource Btn}" Content="Revert" Margin="0,0,8,0" Command="{Binding DataContext.RevertDefinitionCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                <Button Style="{StaticResource BtnPrimary}" Content="Save changes" Command="{Binding DataContext.SaveDefinitionCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid DataContext="{Binding Selected}" Visibility="{Binding DataContext.ShowProcessDetail, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- title -->
+                        <StackPanel Margin="18,16,18,10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+                                <Border Style="{StaticResource Pill}" Background="{Binding StatusSoftBrush}" Margin="10,2,0,0">
+                                    <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontSize="11.5" FontWeight="SemiBold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Foreground="{DynamicResource TextDim}" FontSize="12" Margin="0,3,0,0">
+                                <Run Text="id"/> <Run Text="{Binding IdText, Mode=OneWay}" Foreground="{DynamicResource Text}"/>
+                                <Run Text="  ·  "/><Run Text="{Binding Mode, Mode=OneWay}"/>
+                                <Run Text="  ·  pid"/> <Run Text="{Binding PidText, Mode=OneWay}" Foreground="{DynamicResource Text}"/>
+                                <Run Text="  ·  up"/> <Run Text="{Binding UptimeText, Mode=OneWay}" Foreground="{DynamicResource Text}"/>
+                            </TextBlock>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Button Style="{StaticResource BtnPrimary}" Padding="11,5" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                        Visibility="{Binding CanStart, Converter={StaticResource BoolVis}}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE768;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Start"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                        Visibility="{Binding CanStop, Converter={StaticResource BoolVis}}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE769;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Stop"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.RestartCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE72C;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Restart"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" ToolTip="Graceful reload; zero-downtime in cluster mode"
+                                        Command="{Binding DataContext.ReloadCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE945;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Reload"/></StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource Btn}" Padding="11,5" Margin="0,0,6,6" Foreground="{DynamicResource Errored}"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Delete"/></StackPanel>
+                                </Button>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <!-- tabs -->
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,1" Padding="14,6">
+                            <Grid>
+                                <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="TabOverview" Style="{StaticResource Segment}" GroupName="tab" Content="Overview" Tag="overview" Checked="Tab_Checked" IsChecked="True"/>
+                                        <RadioButton x:Name="TabLogs" Style="{StaticResource Segment}" GroupName="tab" Content="Logs" Tag="logs" Checked="Tab_Checked"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- log tools -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                            Visibility="{Binding DataContext.LogsVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}">
+                                    <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" Margin="0,0,6,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton Style="{StaticResource Segment}" Padding="8,4" GroupName="stream" Content="all" Tag="all" Checked="Stream_Checked" IsChecked="True"/>
+                                            <RadioButton Style="{StaticResource Segment}" Padding="8,4" GroupName="stream" Content="out" Tag="out" Checked="Stream_Checked"/>
+                                            <RadioButton Style="{StaticResource Segment}" Padding="8,4" GroupName="stream" Content="err" Tag="err" Checked="Stream_Checked"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ToggleButton x:Name="PauseToggle" Width="30" Height="30" ToolTip="Pause live output" FontFamily="{StaticResource IconFont}"
+                                                  Content="&#xE769;" Checked="Pause_Changed" Unchecked="Pause_Changed" Cursor="Hand">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border x:Name="b" CornerRadius="6" Background="Transparent">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{DynamicResource TextDim}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource Hover}"/></Trigger>
+                                                    <Trigger Property="IsChecked" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource AccentSoft}"/></Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+                                    <Button Style="{StaticResource IconBtn}" Content="&#xE72C;" ToolTip="Reload from files" Command="{Binding DataContext.ReloadLogsCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    <Button Style="{StaticResource IconBtn}" Content="&#xE894;" ToolTip="Clear view" Command="{Binding DataContext.ClearLogsCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    <Button Style="{StaticResource IconBtn}" Content="&#xE8A7;" ToolTip="Open stdout log file" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding P.OutLog}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- overview -->
+                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="18,14,18,16"
+                                      Visibility="{Binding IsChecked, ElementName=TabOverview, Converter={StaticResource BoolVis}}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="12,10,12,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="CPU" Foreground="{DynamicResource TextDim}" FontSize="11.5"/>
+                                                <TextBlock Text="{Binding CpuText}" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                                            </DockPanel>
+                                            <Viewbox Stretch="Fill" Height="44" Margin="0,6,0,0">
+                                                <Canvas Width="360" Height="56">
+                                                    <Polygon Points="{Binding CpuLine}" Fill="{DynamicResource AccentSoft}" Stroke="{DynamicResource Accent}" StrokeThickness="2.5" StrokeLineJoin="Round"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="{DynamicResource Surface2}" CornerRadius="10" Padding="12,10,12,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="MEMORY" Foreground="{DynamicResource TextDim}" FontSize="11.5"/>
+                                                <TextBlock Text="{Binding MemText}" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                                            </DockPanel>
+                                            <Viewbox Stretch="Fill" Height="44" Margin="0,6,0,0">
+                                                <Canvas Width="360" Height="56">
+                                                    <Polygon Points="{Binding MemLine}" Fill="{DynamicResource OnlineSoft}" Stroke="{DynamicResource Online}" StrokeThickness="2.5" StrokeLineJoin="Round"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <Grid x:Name="KvGrid">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.Resources>
+                                        <Style TargetType="TextBox" BasedOn="{StaticResource ValueBox}"><Setter Property="Margin" Value="0,0,0,10"/></Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource KeyText}"/>
+                                    </Grid.Resources>
+                                    <TextBlock Grid.Row="0" Text="Script"/>       <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding P.Script, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                                    <TextBlock Grid.Row="1" Text="Working dir"/>  <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding P.Cwd, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                                    <TextBlock Grid.Row="2" Text="Arguments"/>    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding P.Args, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                                    <TextBlock Grid.Row="3" Text="Interpreter"/>  <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding P.Interpreter, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="4" Text="Node args"/>    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding P.NodeArgs, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                                    <TextBlock Grid.Row="5" Text="Started"/>      <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StartedText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="6" Text="Created"/>      <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding CreatedText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="7" Text="Restarts"/>
+                                    <TextBox Grid.Row="7" Grid.Column="1">
+                                        <TextBox.Text>
+                                            <MultiBinding StringFormat="{}{0} total · {1} unstable" Mode="OneWay">
+                                                <Binding Path="P.Restarts"/><Binding Path="P.UnstableRestarts"/>
+                                            </MultiBinding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBlock Grid.Row="8" Text="Process tree"/> <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding TreeText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="9" Text="Auto restart"/> <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding AutoRestartText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="10" Text="Watch"/>       <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding WatchText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="11" Text="Max memory"/>  <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding MaxMemText, Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="12" Text="Versions"/>
+                                    <TextBox Grid.Row="12" Grid.Column="1">
+                                        <TextBox.Text>
+                                            <MultiBinding StringFormat="{}app {0} · node {1}" Mode="OneWay">
+                                                <Binding Path="P.Version"/><Binding Path="P.NodeVersion"/>
+                                            </MultiBinding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBlock Grid.Row="13" Text="stdout log"/>
+                                    <DockPanel Grid.Row="13" Grid.Column="1" Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Width="24" Height="22" FontSize="11" Content="&#xE8B7;" ToolTip="Show in Explorer" VerticalAlignment="Top"
+                                                Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding P.OutLog}"/>
+                                        <TextBox Text="{Binding P.OutLog, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0"/>
+                                    </DockPanel>
+                                    <TextBlock Grid.Row="14" Text="stderr log"/>
+                                    <DockPanel Grid.Row="14" Grid.Column="1" Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Width="24" Height="22" FontSize="11" Content="&#xE8B7;" ToolTip="Show in Explorer" VerticalAlignment="Top"
+                                                Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding P.ErrLog}"/>
+                                        <TextBox Text="{Binding P.ErrLog, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0"/>
+                                    </DockPanel>
+                                    <TextBlock Grid.Row="15" Text="User"/>        <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding P.User, Mode=OneWay}"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- logs -->
+                        <Border Grid.Row="2" Background="{DynamicResource LogBg}" CornerRadius="0,0,12,12"
+                                Visibility="{Binding IsChecked, ElementName=TabLogs, Converter={StaticResource BoolVis}}">
+                            <ListBox x:Name="LogList" ItemsSource="{Binding DataContext.Logs, RelativeSource={RelativeSource AncestorType=Window}}"
+                                     Background="Transparent" BorderThickness="0" Padding="10,8" SelectionMode="Extended"
+                                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                     KeyDown="LogList_KeyDown">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border x:Name="b" Background="Transparent" Padding="4,1"><ContentPresenter/></Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsSelected" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource Selected}"/></Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type ui:LogLine}">
+                                        <TextBlock x:Name="t" Text="{Binding Text}" Foreground="{DynamicResource Text}">
+                                        </TextBlock>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsErr}" Value="True"><Setter TargetName="t" Property="Foreground" Value="{DynamicResource LogErr}"/></DataTrigger>
+                                            <DataTrigger Binding="{Binding IsMarker}" Value="True">
+                                                <Setter TargetName="t" Property="Foreground" Value="{DynamicResource Accent}"/>
+                                                <Setter TargetName="t" Property="FontFamily" Value="{StaticResource UiFont}"/>
+                                                <Setter TargetName="t" Property="FontSize" Value="11"/>
+                                                <Setter TargetName="t" Property="Margin" Value="0,8,0,4"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= Toasts ================= -->
+        <ItemsControl Grid.RowSpan="3" ItemsSource="{Binding Toasts}" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      Margin="0,0,28,28" Width="340" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type ui:Toast}">
+                    <Border Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="10" Padding="12,10" Margin="0,8,0,0">
+                        <Border.Effect><DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.25"/></Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock x:Name="g" Style="{StaticResource Glyph}" Text="{Binding Glyph}" FontSize="15" Margin="0,1,11,0" VerticalAlignment="Top" Foreground="{DynamicResource Accent}"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap" FontSize="12" Margin="0,2,0,0" MaxHeight="140" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Kind}" Value="Success"><Setter TargetName="g" Property="Foreground" Value="{DynamicResource Online}"/></DataTrigger>
+                        <DataTrigger Binding="{Binding Kind}" Value="Error"><Setter TargetName="g" Property="Foreground" Value="{DynamicResource Errored}"/></DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- ================= Settings overlay ================= -->
+        <Grid Grid.RowSpan="3" Background="{DynamicResource Overlay}" Visibility="{Binding SettingsOpen, Converter={StaticResource BoolVis}}"
+              MouseLeftButtonDown="Overlay_MouseDown">
+            <Border Style="{StaticResource Card}" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" MouseLeftButtonDown="Card_MouseDown">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,16">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE711;" Command="{Binding CloseSettingsCommand}"/>
+                        <TextBlock Text="Settings" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <TextBlock Style="{StaticResource Label}" Text="Theme"/>
+                    <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="ThemeSystem" Style="{StaticResource Segment}" GroupName="theme" Content="System" Tag="System" Checked="Theme_Checked"/>
+                            <RadioButton x:Name="ThemeDark" Style="{StaticResource Segment}" GroupName="theme" Content="Dark" Tag="Dark" Checked="Theme_Checked"/>
+                            <RadioButton x:Name="ThemeLight" Style="{StaticResource Segment}" GroupName="theme" Content="Light" Tag="Light" Checked="Theme_Checked"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Label}" Text="CPU / memory sampling"/>
+                            <ComboBox x:Name="MetricsBox" SelectionChanged="Interval_Changed">
+                                <ComboBoxItem Content="every 1 s" Tag="1"/>
+                                <ComboBoxItem Content="every 2 s" Tag="2"/>
+                                <ComboBoxItem Content="every 5 s" Tag="5"/>
+                                <ComboBoxItem Content="every 10 s" Tag="10"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource Label}" Text="Full list refresh"/>
+                            <ComboBox x:Name="ListIntervalBox" SelectionChanged="Interval_Changed">
+                                <ComboBoxItem Content="every 30 s" Tag="30"/>
+                                <ComboBoxItem Content="every 1 min" Tag="60"/>
+                                <ComboBoxItem Content="every 5 min" Tag="300"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,-10,0,16"
+                               Text="Status changes arrive instantly over pm2's event bus. The full list refresh is only a backstop, because pm2 starts a WMI/PowerShell query every time it is asked for its list. Sampling pauses while ampm2 is hidden."/>
+
+                    <CheckBox Style="{StaticResource Switch}" Content="Close button hides to the tray" IsChecked="{Binding Settings.CloseToTray}" Margin="0,0,0,12"/>
+                    <CheckBox Style="{StaticResource Switch}" Content="Start hidden in the tray" IsChecked="{Binding Settings.StartMinimized}" Margin="0,0,0,12"/>
+                    <CheckBox Style="{StaticResource Switch}" Content="Confirm delete / stop all / flush" IsChecked="{Binding Settings.ConfirmDestructive}" Margin="0,0,0,12"/>
+                    <CheckBox Style="{StaticResource Switch}" Content="GPU rendering (+50 MB memory, needs restart)" IsChecked="{Binding Settings.GpuRendering}" Margin="0,0,0,12"/>
+                    <CheckBox x:Name="ElevatedTaskSwitch" Style="{StaticResource Switch}" Content="Start as administrator without a UAC prompt"
+                              IsEnabled="{Binding IsElevated}" Click="ElevatedTask_Click" Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource Hint}" Margin="46,0,0,16"
+                               Text="Needed only when the pm2 daemon runs elevated. Uses a scheduled task named 'ampm2 (elevated)'. Change it from an admin ampm2."/>
+
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Style="{StaticResource Hint}" Margin="0">
+                            <Run Text="ampm2"/> <Run Text="{Binding AppVersion, Mode=OneWay}"/> <Run Text="·"/> <Hyperlink Command="{Binding OpenAboutCommand}" Foreground="{DynamicResource Accent}">About</Hyperlink>
+                        </TextBlock>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Done" HorizontalAlignment="Right" Command="{Binding CloseSettingsCommand}"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= About overlay ================= -->
+        <Grid Grid.RowSpan="3" Background="{DynamicResource Overlay}" Visibility="{Binding AboutOpen, Converter={StaticResource BoolVis}}"
+              MouseLeftButtonDown="AboutOverlay_MouseDown">
+            <Border Style="{StaticResource Card}" Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28,24" MouseLeftButtonDown="Card_MouseDown">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,18">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE711;" ToolTip="Close" Command="{Binding CloseAboutCommand}" VerticalAlignment="Top"/>
+                        <Image x:Name="AboutLogo" Width="56" Height="56" Margin="0,0,16,0" VerticalAlignment="Top"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{x:Static core:AppInfo.Name}" FontSize="22" FontWeight="SemiBold"/>
+                                <Border Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="7,1,8,2" Margin="10,4,0,0" VerticalAlignment="Center">
+                                    <TextBlock Foreground="{DynamicResource Accent}" FontSize="12" FontWeight="SemiBold"><Run Text="v"/><Run Text="{x:Static core:AppInfo.Version}"/></TextBlock>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{x:Static core:AppInfo.Tagline}" Foreground="{DynamicResource TextDim}" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Author" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static core:AppInfo.Author}" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="1" Text="Email" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+                                <Hyperlink Command="{Binding OpenEmailCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.Email}"/></Hyperlink>
+                            </TextBlock>
+                            <TextBlock Grid.Row="2" Text="GitHub" Style="{StaticResource KeyText}" Margin="0,0,16,8" Visibility="{Binding HasGitHub, Converter={StaticResource BoolVis}}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" Visibility="{Binding HasGitHub, Converter={StaticResource BoolVis}}">
+                                <Hyperlink Command="{Binding OpenGitHubCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.GitHubUrl}"/></Hyperlink>
+                            </TextBlock>
+                            <TextBlock Grid.Row="3" Text="Version" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"><Run Text="{x:Static core:AppInfo.Version}"/><Run Text="  ·  "/><Run Text="{x:Static core:AppInfo.Platform}"/></TextBlock>
+                            <TextBlock Grid.Row="4" Text="Runtime" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{x:Static core:AppInfo.Runtime}" Foreground="{DynamicResource TextDim}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="5" Text="License" Style="{StaticResource KeyText}" Margin="0,0,16,0"/>
+                            <StackPanel Grid.Row="5" Grid.Column="1">
+                                <TextBlock><Hyperlink Command="{Binding OpenLicenseCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.License}"/></Hyperlink></TextBlock>
+                                <TextBlock Text="{x:Static core:AppInfo.LicenseSummary}" Foreground="{DynamicResource TextDim}" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <DockPanel Margin="0,18,0,0">
+                        <TextBlock Text="{x:Static core:AppInfo.Copyright}" Foreground="{DynamicResource TextFaint}" FontSize="12" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource Btn}" Content="Copy details" Margin="0,0,8,0" Command="{Binding CopyAboutCommand}"
+                                    ToolTip="Copies version, platform and pm2 details, handy for bug reports"/>
+                            <Button Style="{StaticResource BtnPrimary}" Content="Close" Command="{Binding CloseAboutCommand}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= Confirm dialog ================= -->
+        <Grid Grid.RowSpan="3" Background="{DynamicResource Overlay}" Visibility="{Binding HasDialog, Converter={StaticResource BoolVis}}">
+            <Border Style="{StaticResource Card}" Width="440" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" DataContext="{Binding Dialog}">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap" Margin="0,10,0,20" LineHeight="19"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="DialogCancel" Style="{StaticResource Btn}" Content="{Binding CancelText}" Margin="0,0,8,0" Click="DialogCancel_Click"/>
+                        <Button x:Name="DialogOk" Content="{Binding OkText}" Click="DialogOk_Click">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Danger}" Value="True"><Setter Property="Background" Value="{DynamicResource Errored}"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
