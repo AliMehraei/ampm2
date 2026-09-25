@@ -105,6 +105,7 @@ public sealed partial class MainViewModel : ObservableObject
         OpenEmailCommand = new RelayCommand(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new RelayCommand(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
         OpenLicenseCommand = new RelayCommand(() => OpenUrl(AppInfo.LicenseUrl));
+        OpenWebsiteCommand = new RelayCommand(() => OpenUrl(AppInfo.Website));
         CopyAboutCommand = new RelayCommand(() =>
         {
             var text = $"{AppInfo.Name} {AppInfo.Version} ({AppInfo.Platform}, {AppInfo.Runtime})\npm2 {(Pm2Version.Length > 0 ? Pm2Version : "not connected")}\n{AppInfo.Author} <{AppInfo.Email}>";
@@ -118,6 +119,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand OpenEmailCommand { get; }
     public ICommand OpenGitHubCommand { get; }
     public ICommand OpenLicenseCommand { get; }
+    public ICommand OpenWebsiteCommand { get; }
     public ICommand CopyAboutCommand { get; }
     public bool HasGitHub => AppInfo.GitHubUrl.Length > 0;
     private bool _aboutOpen;

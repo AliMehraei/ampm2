@@ -80,6 +80,7 @@ public sealed class MainViewModel : ObservableObject
         OpenEmailCommand = new Command(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new Command(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
         OpenLicenseCommand = new Command(() => OpenUrl(AppInfo.LicenseUrl));
+        OpenWebsiteCommand = new Command(() => OpenUrl(AppInfo.Website));
         CopyAboutCommand = Command.Async(() => App.CopyText($"{AppInfo.Name} {AppInfo.Version} ({AppInfo.Platform}, {AppInfo.Runtime})\npm2 {(Pm2Version.Length > 0 ? Pm2Version : "not connected")}\n{AppInfo.Author} <{AppInfo.Email}>", "About details copied."));
         DialogOkCommand = new Command(() => CloseDialog(true));
         DialogCancelCommand = new Command(() => CloseDialog(false));
@@ -500,6 +501,7 @@ public sealed class MainViewModel : ObservableObject
     public Command OpenEmailCommand { get; }
     public Command OpenGitHubCommand { get; }
     public Command OpenLicenseCommand { get; }
+    public Command OpenWebsiteCommand { get; }
     public Command CopyAboutCommand { get; }
     public Command DialogOkCommand { get; }
     public Command DialogCancelCommand { get; }
@@ -838,6 +840,7 @@ public sealed class MainViewModel : ObservableObject
     public string AboutPlatform => $"{AppInfo.Version}  ·  {AppInfo.Platform}";
     public string AboutRuntime => AppInfo.Runtime;
     public string AboutLicense => AppInfo.License;
+    public string AboutWebsite => AppInfo.Website;
     public string AboutLicenseSummary => AppInfo.LicenseSummary;
     public string AboutCopyright => AppInfo.Copyright;
     public string DataFolder => DataPaths.Dir;

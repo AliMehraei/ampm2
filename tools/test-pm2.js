@@ -8,7 +8,7 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 
 const ROOT = process.env.PM2_ROOT || path.join(execSync('npm root -g').toString().trim(), 'pm2');
-process.env.PM2_HOME = path.join(os.tmpdir(), 'ampm2-test-pm2');
+process.env.PM2_HOME = process.env.AMPM2_TEST_HOME || path.join(os.tmpdir(), 'ampm2-test-pm2');
 const cst = require(path.join(ROOT, 'constants.js'));
 cst.DAEMON_RPC_PORT = '\\\\.\\pipe\\ampm2-test-rpc.sock';
 cst.DAEMON_PUB_PORT = '\\\\.\\pipe\\ampm2-test-pub.sock';

@@ -559,7 +559,7 @@
                         </StackPanel>
                     </DockPanel>
                     <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="16,12">
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                             <Grid.Styles><Style Selector="TextBlock.k"><Setter Property="Foreground" Value="{DynamicResource TextDim}"/><Setter Property="FontSize" Value="12"/><Setter Property="Margin" Value="0,0,16,8"/></Style></Grid.Styles>
                             <TextBlock Grid.Row="0" Classes="k" Text="Author"/>
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AboutAuthor}" FontWeight="SemiBold" Margin="0,0,0,8"/>
@@ -567,12 +567,14 @@
                             <HyperlinkButton Grid.Row="1" Grid.Column="1" Content="{Binding AboutEmail}" Command="{Binding OpenEmailCommand}" Padding="0" Margin="0,0,0,8"/>
                             <TextBlock Grid.Row="2" Classes="k" Text="GitHub" IsVisible="{Binding HasGitHub}"/>
                             <HyperlinkButton Grid.Row="2" Grid.Column="1" Content="{Binding AboutGitHub}" Command="{Binding OpenGitHubCommand}" Padding="0" Margin="0,0,0,8" IsVisible="{Binding HasGitHub}"/>
-                            <TextBlock Grid.Row="3" Classes="k" Text="Version"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AboutPlatform}" Margin="0,0,0,8"/>
-                            <TextBlock Grid.Row="4" Classes="k" Text="Runtime"/>
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AboutRuntime}" Classes="dim" Margin="0,0,0,8"/>
-                            <TextBlock Grid.Row="5" Classes="k" Text="License" Margin="0,0,16,0"/>
-                            <StackPanel Grid.Row="5" Grid.Column="1">
+                            <TextBlock Grid.Row="3" Classes="k" Text="Website"/>
+                            <HyperlinkButton Grid.Row="3" Grid.Column="1" Content="{Binding AboutWebsite}" Command="{Binding OpenWebsiteCommand}" Padding="0" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="4" Classes="k" Text="Version"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AboutPlatform}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="5" Classes="k" Text="Runtime"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding AboutRuntime}" Classes="dim" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="6" Classes="k" Text="License" Margin="0,0,16,0"/>
+                            <StackPanel Grid.Row="6" Grid.Column="1">
                                 <HyperlinkButton Content="{Binding AboutLicense}" Command="{Binding OpenLicenseCommand}" Padding="0"/>
                                 <TextBlock Text="{Binding AboutLicenseSummary}" Classes="dim" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
                             </StackPanel>

@@ -13,7 +13,10 @@ const os = require('os');
 const { execSync } = require('child_process');
 
 const ROOT = process.env.PM2_ROOT || path.join(execSync('npm root -g').toString().trim(), 'pm2');
-const HOME = path.join(os.tmpdir(), 'ampm2-test-pm2');
+// AMPM2_TEST_HOME: pm2 home for this daemon. AMPM2_DEMO_DIR: demo mode (realistic sample services copied
+// into that folder, used for the README screenshots: tools\screenshots.ps1).
+const HOME = process.env.AMPM2_TEST_HOME || path.join(os.tmpdir(), 'ampm2-test-pm2');
+const DEMO = process.env.AMPM2_DEMO_DIR || '';
 fs.mkdirSync(HOME, { recursive: true });
 try { fs.unlinkSync(path.join(HOME, 'stop')); } catch {}
 process.env.PM2_HOME = HOME;
@@ -46,17 +49,41 @@ waitForPipe(() => {
   const pm2 = new PM2.custom({});
   pm2.connect((err) => {
     if (err) { console.error('connect', err); process.exit(1); }
-    const apps = [
+    let apps = [
       { name: 'api', script: path.join(APPS, 'api.js'), cwd: APPS, env: { PORT: '39871' } },
       { name: 'worker', script: path.join(APPS, 'worker.js'), cwd: APPS, exec_mode: 'cluster', instances: 2 },
       { name: 'crasher', script: path.join(APPS, 'crasher.js'), cwd: APPS, min_uptime: 5000, max_restarts: 3 },
       { name: 'idle', script: path.join(APPS, 'api.js'), cwd: APPS, env: { PORT: '39872' }, namespace: 'tools' },
     ];
+    let stopAfter = ['idle'];
+    if (DEMO) {
+      // realistic-looking services, each in its own folder under AMPM2_DEMO_DIR
+      const src = path.join(__dirname, 'demo-apps');
+      const put = (dir, file) => {
+        const d = path.join(DEMO, dir);
+        fs.mkdirSync(d, { recursive: true });
+        fs.copyFileSync(path.join(src, file), path.join(d, file));
+        return d;
+      };
+      const d = {
+        api: put('shop-api', 'server.js'), web: put('storefront', 'server.js'), jobs: put('jobs', 'worker.js'),
+        mail: put('mailer', 'index.js'), rep: put('reports', 'nightly.js'), img: put('image-resizer', 'server.js'),
+      };
+      apps = [
+        { name: 'shop-api', script: path.join(d.api, 'server.js'), cwd: d.api, env: { PORT: '39881', ROLE: 'api' }, max_memory_restart: '500M' },
+        { name: 'storefront', script: path.join(d.web, 'server.js'), cwd: d.web, env: { PORT: '39882', ROLE: 'web' } },
+        { name: 'jobs', script: path.join(d.jobs, 'worker.js'), cwd: d.jobs, exec_mode: 'cluster', instances: 2 },
+        { name: 'image-resizer', script: path.join(d.img, 'server.js'), cwd: d.img, env: { PORT: '39883', ROLE: 'images' }, namespace: 'media' },
+        { name: 'mailer', script: path.join(d.mail, 'index.js'), cwd: d.mail, min_uptime: 5000, max_restarts: 3 },
+        { name: 'reports', script: path.join(d.rep, 'nightly.js'), cwd: d.rep, cron_restart: '0 2 * * *' },
+      ];
+      stopAfter = ['reports'];
+    }
     let n = 0;
     for (const a of apps) pm2.start(a, (e) => {
       if (e) console.error('start', a.name, e.message || e);
       if (++n === apps.length) {
-        pm2.stop('idle', () => console.log('READY test daemon on', cst.DAEMON_RPC_PORT));
+        pm2.stop(stopAfter[0], () => console.log('READY test daemon on', cst.DAEMON_RPC_PORT));
       }
     });
     const stop = () => pm2.delete('all', () => { console.log('stopped'); process.exit(0); });

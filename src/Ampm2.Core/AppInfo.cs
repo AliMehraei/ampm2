@@ -12,6 +12,7 @@ public static class AppInfo
     public const string Email = "ali.mehraei.dev@gmail.com";
     /// <summary>Project page (the About section hides the link when empty).</summary>
     public const string GitHubUrl = "https://github.com/AliMehraei/ampm2";
+    public const string Website = "https://www.argbyte.com";
     public const string License = "PolyForm Noncommercial 1.0.0 + education";
     public const string LicenseSummary = "Free for non-commercial and educational use worldwide · commercial use needs a license";
     public const string LicenseUrl = "https://github.com/AliMehraei/ampm2/blob/main/LICENSE.md";

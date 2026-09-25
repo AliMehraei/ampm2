@@ -27,4 +27,5 @@ Free for non-commercial and educational use worldwide;
 commercial use needs a license from the author: ali.mehraei.dev@gmail.com
 
 Project page: https://github.com/AliMehraei/ampm2
+Website:      https://www.argbyte.com
 Problems? About ampm2 > Copy details, then open an issue on GitHub or mail ali.mehraei.dev@gmail.com

@@ -1085,7 +1085,7 @@
                     <Border Background="{DynamicResource Surface2}" CornerRadius="10" Padding="16,12">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                            <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="Author" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static core:AppInfo.Author}" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <TextBlock Grid.Row="1" Text="Email" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
@@ -1096,12 +1096,16 @@
                             <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" Visibility="{Binding HasGitHub, Converter={StaticResource BoolVis}}">
                                 <Hyperlink Command="{Binding OpenGitHubCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.GitHubUrl}"/></Hyperlink>
                             </TextBlock>
-                            <TextBlock Grid.Row="3" Text="Version" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"><Run Text="{x:Static core:AppInfo.Version}"/><Run Text="  ·  "/><Run Text="{x:Static core:AppInfo.Platform}"/></TextBlock>
-                            <TextBlock Grid.Row="4" Text="Runtime" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{x:Static core:AppInfo.Runtime}" Foreground="{DynamicResource TextDim}" Margin="0,0,0,8"/>
-                            <TextBlock Grid.Row="5" Text="License" Style="{StaticResource KeyText}" Margin="0,0,16,0"/>
-                            <StackPanel Grid.Row="5" Grid.Column="1">
+                            <TextBlock Grid.Row="3" Text="Website" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,0,0,8">
+                                <Hyperlink Command="{Binding OpenWebsiteCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.Website}"/></Hyperlink>
+                            </TextBlock>
+                            <TextBlock Grid.Row="4" Text="Version" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,0,8"><Run Text="{x:Static core:AppInfo.Version}"/><Run Text="  ·  "/><Run Text="{x:Static core:AppInfo.Platform}"/></TextBlock>
+                            <TextBlock Grid.Row="5" Text="Runtime" Style="{StaticResource KeyText}" Margin="0,0,16,8"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{x:Static core:AppInfo.Runtime}" Foreground="{DynamicResource TextDim}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="6" Text="License" Style="{StaticResource KeyText}" Margin="0,0,16,0"/>
+                            <StackPanel Grid.Row="6" Grid.Column="1">
                                 <TextBlock><Hyperlink Command="{Binding OpenLicenseCommand}" Foreground="{DynamicResource Accent}"><Run Text="{x:Static core:AppInfo.License}"/></Hyperlink></TextBlock>
                                 <TextBlock Text="{x:Static core:AppInfo.LicenseSummary}" Foreground="{DynamicResource TextDim}" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
                             </StackPanel>
