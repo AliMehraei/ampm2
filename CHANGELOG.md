@@ -5,11 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-25
+
 ### Added
 - **Built-in help guide** in both apps: 16 topics on Windows and 15 on macOS, from getting started to troubleshooting, with search. Open it with F1 (Windows), ⌘? or F1 (macOS), the **?** button in the header, the ⋯ menu, the tray or menu bar icon, or ampm2 ▸ ampm2 Help on macOS.
 - **Learn more links** that open the matching help topic: on the "pm2 runs as administrator" screen, the stray-daemon banner, the "daemon not running" screen and the empty Saved list.
 - **docs/HELP.md**, the same guide for reading on GitHub, generated from the in-app content with `ampm2 --export-help` (macOS app).
 - This changelog.
+
+### Changed
+- The version is 1.2.0 in both apps.
 
 ## [1.1.0] - 2026-09-25
 
@@ -58,6 +63,7 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.2.0
 [1.1.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.1.0
 [1.0.0]: https://github.com/AliMehraei/ampm2/blob/main/CHANGELOG.md#100---2026-09-25

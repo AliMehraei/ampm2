@@ -9,7 +9,7 @@
     <AssemblyName>ampm2</AssemblyName>
     <RootNamespace>Ampm2.Mac</RootNamespace>
     <Product>ampm2</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
