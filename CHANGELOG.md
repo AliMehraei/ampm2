@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-25
+
 ### Added
 - **Updates in About**, in both apps. Opening About checks GitHub for a newer release; **Install … and restart** downloads it, checks it against the release's SHA256 checksums, installs it and reopens ampm2. Your pm2 processes keep running.
   - Windows: the new installer runs silently and reopens ampm2 when it is done. It asks for administrator permission first, unless ampm2 already runs as administrator.
@@ -92,7 +94,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.4.0
 [1.3.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.3.0
 [1.2.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.2.0
 [1.1.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.1.0
