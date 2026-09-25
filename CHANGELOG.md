@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-25
+
 ### Added
 - **Start all, Restart all and Stop all** as labelled buttons above the process list, next to Refresh, in both apps. Start all starts every stopped or errored process, and Stop all only touches running ones. Restart all and Stop all still ask first.
 - A global error handler in the macOS app. An unexpected error now shows a message and is written to `~/Library/Application Support/ampm2/errors.log`, instead of closing the app.
@@ -81,7 +83,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.3.0
 [1.2.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.2.0
 [1.1.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.1.0
 [1.0.0]: https://github.com/AliMehraei/ampm2/blob/main/CHANGELOG.md#100---2026-09-25

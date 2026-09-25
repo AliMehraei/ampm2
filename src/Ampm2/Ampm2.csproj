@@ -9,7 +9,7 @@
     <AssemblyName>ampm2</AssemblyName>
     <RootNamespace>Ampm2</RootNamespace>
     <Product>ampm2</Product>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon Condition="Exists('Assets\ampm2.ico')">Assets\ampm2.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
