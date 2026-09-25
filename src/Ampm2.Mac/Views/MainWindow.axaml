@@ -12,6 +12,8 @@
         <KeyBinding Gesture="Cmd+R" Command="{Binding RefreshCommand}"/>
         <KeyBinding Gesture="Ctrl+R" Command="{Binding RefreshCommand}"/>
         <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Gesture="F1" Command="{Binding OpenHelpCommand}"/>
+        <KeyBinding Gesture="Cmd+Shift+OemQuestion" Command="{Binding OpenHelpCommand}"/>
         <KeyBinding Gesture="Cmd+N" Command="{Binding AddCommand}"/>
         <KeyBinding Gesture="Ctrl+N" Command="{Binding AddCommand}"/>
         <KeyBinding Gesture="Cmd+S" Command="{Binding SaveCommand}"/>
@@ -59,6 +61,7 @@
                 <Button Classes="icon" ToolTip.Tip="Save process list (pm2 save) · ⌘S" Command="{Binding SaveCommand}"><PathIcon Data="{StaticResource IcSave}"/></Button>
                 <Button Classes="icon" ToolTip.Tip="Restart all" Command="{Binding RestartAllCommand}"><PathIcon Data="{StaticResource IcRestart}"/></Button>
                 <Button Classes="icon" ToolTip.Tip="Stop all" Command="{Binding StopAllCommand}"><PathIcon Data="{StaticResource IcStop}"/></Button>
+                <Button Classes="icon" ToolTip.Tip="Help · ⌘?" Command="{Binding OpenHelpCommand}"><PathIcon Data="{StaticResource IcHelp}"/></Button>
                 <Button Classes="icon" ToolTip.Tip="Settings · ⌘," Command="{Binding OpenSettingsCommand}"><PathIcon Data="{StaticResource IcGear}"/></Button>
                 <Button Classes="icon" ToolTip.Tip="About ampm2" Command="{Binding OpenAboutCommand}"><PathIcon Data="{StaticResource IcInfo}"/></Button>
                 <Button Classes="primary" AutomationProperties.Name="New process" Margin="10,0,0,0" Command="{Binding AddCommand}" ToolTip.Tip="Start a new process · ⌘N">
@@ -259,6 +262,7 @@
                         <TextBlock Text="Nothing saved yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
                                    Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
+                        <Button Classes="ghost" Content="Learn more" HorizontalAlignment="Center" Command="{Binding OpenHelpCommand}" CommandParameter="saved"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460" Spacing="6" IsVisible="{Binding IsEmpty}">
@@ -278,6 +282,7 @@
                         <TextBlock Text="The pm2 daemon is not running" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
                                    Text="Start it here. ampm2 keeps watching and connects automatically when pm2 starts elsewhere."/>
+                        <Button Classes="ghost" Content="Which one should I use?" HorizontalAlignment="Center" Command="{Binding OpenHelpCommand}" CommandParameter="reboot"/>
                         <WrapPanel HorizontalAlignment="Center" ItemSpacing="8" LineSpacing="8" Margin="0,10,0,0">
                             <Button Classes="primary" Content="Start pm2" Command="{Binding StartDaemonCommand}"/>
                             <Button Content="Start + resurrect" Command="{Binding ResurrectCommand}" ToolTip.Tip="Start pm2 and restore pm2's own saved list (dump.pm2)"/>
@@ -291,6 +296,7 @@
                         <TextBlock Text="No access to the pm2 daemon" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="dim"
                                    Text="pm2's socket belongs to another user, usually because pm2 was started with sudo. Start pm2 as yourself (pm2 kill with sudo, then pm2 resurrect) so ampm2 can manage it."/>
+                        <Button Classes="ghost" Content="Learn more" HorizontalAlignment="Center" Command="{Binding OpenHelpCommand}" CommandParameter="admin"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="6" IsVisible="{Binding ShowNoPm2}">

@@ -10,6 +10,7 @@
         WindowStartupLocation="CenterScreen">
 
     <Window.InputBindings>
+        <KeyBinding Key="F1" Command="{Binding OpenHelpCommand}"/>
         <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding AddCommand}"/>
         <KeyBinding Key="R" Modifiers="Control" Command="{Binding RestartCommand}"/>
@@ -196,6 +197,7 @@
                 <Button Style="{StaticResource IconBtn}" Content="&#xE74E;" ToolTip="Save process list (pm2 save) · Ctrl+S" Command="{Binding SaveCommand}"/>
                 <Button Style="{StaticResource IconBtn}" Content="&#xE72C;" ToolTip="Restart all" Command="{Binding RestartAllCommand}"/>
                 <Button Style="{StaticResource IconBtn}" Content="&#xE71A;" ToolTip="Stop all" Command="{Binding StopAllCommand}"/>
+                <Button x:Name="HelpButton" Style="{StaticResource IconBtn}" Content="&#xE897;" ToolTip="Help · F1" Command="{Binding OpenHelpCommand}"/>
                 <Button x:Name="SettingsButton" Style="{StaticResource IconBtn}" Content="&#xE713;" ToolTip="Settings" Command="{Binding OpenSettingsCommand}"/>
                 <Button x:Name="MoreButton" Style="{StaticResource IconBtn}" Content="&#xE712;" ToolTip="More" Click="MoreButton_Click">
                     <Button.ContextMenu>
@@ -208,6 +210,7 @@
                             <MenuItem Header="Kill pm2 daemon…" Tag="&#xE7E8;" Command="{Binding KillDaemonCommand}"/>
                             <Separator/>
                             <MenuItem Header="Settings" Tag="&#xE713;" Command="{Binding OpenSettingsCommand}"/>
+                            <MenuItem Header="Help" Tag="&#xE897;" InputGestureText="F1" Command="{Binding OpenHelpCommand}"/>
                             <MenuItem Header="About ampm2" Tag="&#xE946;" Command="{Binding OpenAboutCommand}"/>
                         </ContextMenu>
                     </Button.ContextMenu>
@@ -232,7 +235,10 @@
                         <Run Text="{Binding StrayText, Mode=OneWay}" FontWeight="SemiBold"/>
                         <Run Text=" — left behind by pm2 commands that could not reach the real daemon. They manage nothing." Foreground="{DynamicResource TextDim}"/>
                     </TextBlock>
-                    <Button Grid.Column="2" Style="{StaticResource Btn}" Content="Clean up…" Padding="10,4" Margin="10,0,0,0" Command="{Binding CleanStraysCommand}"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource BtnGhost}" Content="Learn more" Padding="8,4" Margin="10,0,0,0" Command="{Binding OpenHelpCommand}" CommandParameter="strays"/>
+                        <Button Style="{StaticResource Btn}" Content="Clean up…" Padding="10,4" Margin="6,0,0,0" Command="{Binding CleanStraysCommand}"/>
+                    </StackPanel>
                 </Grid>
             </Border>
         </StackPanel>
@@ -564,6 +570,7 @@
                         <TextBlock Text="Nothing saved yet" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
                                    Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps even after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Learn more" HorizontalAlignment="Center" Margin="0,8,0,0" Command="{Binding OpenHelpCommand}" CommandParameter="saved"/>
                     </StackPanel>
 
                     <!-- saved list bulk bar -->
@@ -628,6 +635,7 @@
                         <TextBlock Text="The pm2 daemon is not running" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
                                    Text="Start it here. ampm2 keeps watching and connects automatically when pm2 starts elsewhere."/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Which one should I use?" HorizontalAlignment="Center" Margin="0,4,0,0" Command="{Binding OpenHelpCommand}" CommandParameter="reboot"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
                             <Button Style="{StaticResource BtnPrimary}" Content="Start pm2" Command="{Binding StartDaemonCommand}" Margin="0,0,8,0"/>
                             <Button Style="{StaticResource Btn}" Content="Start + resurrect" Command="{Binding ResurrectCommand}" Margin="0,0,8,0"
@@ -658,6 +666,7 @@
                         </StackPanel>
                         <TextBlock Style="{StaticResource Hint}" TextAlignment="Center" Margin="0,12,0,0"
                                    Text="&quot;Don't ask again&quot; creates a scheduled task that starts ampm2 elevated without a UAC prompt. You can remove it in Settings."/>
+                        <Button Style="{StaticResource BtnGhost}" Content="Learn more about this" HorizontalAlignment="Center" Margin="0,6,0,0" Command="{Binding OpenHelpCommand}" CommandParameter="admin"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520"

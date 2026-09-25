@@ -185,6 +185,7 @@ public partial class App : Application
         menu.Items.Add(Item("Stop all", "", () => Vm.StopAllCommand.Execute(null), c && Vm.TotalCount > 0));
         menu.Items.Add(Item("Save process list", "", () => Vm.SaveCommand.Execute(null), c));
         menu.Items.Add(new Separator());
+        menu.Items.Add(Item("Help", "\uE897", () => ShowHelp()));
         menu.Items.Add(Item("About ampm2", "\uE946", () => Vm.OpenAboutCommand.Execute(null)));
         menu.Items.Add(Item("Exit", "", ExitApp));
         Native.SetForegroundWindow(_tray.Handle);
@@ -208,6 +209,26 @@ public partial class App : Application
     {
         if (_window == null) return;
         if (!_window.IsVisible || _window.WindowState == WindowState.Minimized) ShowMainWindow();
+    }
+
+    private static HelpWindow? _help;
+
+    /// <summary>Opens (or focuses) the help window, optionally on a topic id from Ampm2.Help.HelpContent.</summary>
+    public static void ShowHelp(string? topic = null)
+    {
+        if (_help == null || !_help.IsLoaded)
+        {
+            _help = new HelpWindow();
+            if (_window != null && _window.IsVisible) _help.Owner = _window;
+            _help.Closed += (_, _) => _help = null;
+            _help.Show();
+        }
+        else
+        {
+            if (_help.WindowState == WindowState.Minimized) _help.WindowState = WindowState.Normal;
+            _help.Activate();
+        }
+        _help.ShowTopic(topic);
     }
 
     public static void ShowAddWindow()

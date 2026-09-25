@@ -85,6 +85,25 @@ public partial class App : Application
         await new AddProcessWindow(Vm).ShowDialog(_window);
     }
 
+    private static HelpWindow? _help;
+
+    /// <summary>Opens (or focuses) the help window, optionally on a topic id from Ampm2.Help.HelpContent.</summary>
+    public static void ShowHelp(string? topic = null)
+    {
+        if (_help == null)
+        {
+            _help = new HelpWindow();
+            _help.Closed += (_, _) => _help = null;
+            _help.Show();
+        }
+        else
+        {
+            if (_help.WindowState == WindowState.Minimized) _help.WindowState = WindowState.Normal;
+            _help.Activate();
+        }
+        _help.ShowTopic(topic);
+    }
+
     public static void UpdateTrayTooltip()
     {
         var vm = Vm;
@@ -168,4 +187,5 @@ public partial class App : Application
     private void About_Click(object? sender, EventArgs e) { ShowMainWindow(); Vm?.OpenAboutCommand.Execute(null); }
     private void Settings_Click(object? sender, EventArgs e) { ShowMainWindow(); Vm?.OpenSettingsCommand.Execute(null); }
     private void Quit_Click(object? sender, EventArgs e) => Quit();
+    private void Help_Click(object? sender, EventArgs e) => ShowHelp();
 }

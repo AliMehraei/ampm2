@@ -39,6 +39,19 @@ public static class SelfTest
             Check("ps cpu-time parser", Math.Abs(UnixProcessMetrics.ParseCpuTime("1:02.50") - 62.5) < 0.01 && Math.Abs(UnixProcessMetrics.ParseCpuTime("1-02:03:04") - 93784) < 0.01);
         }
 
+        // help guide: both platforms have content, and every topic the apps link to exists
+        {
+            var win = Ampm2.Help.HelpContent.Topics(Ampm2.Help.HelpPlatform.Windows);
+            var mac = Ampm2.Help.HelpContent.Topics(Ampm2.Help.HelpPlatform.Mac);
+            var linked = new[] { "saved", "reboot", "admin" };
+            bool ok = win.Count >= 15 && mac.Count >= 14 && win.All(t => t.Blocks.Count > 0) && mac.All(t => t.Blocks.Count > 0)
+                      && linked.All(id => win.Any(t => t.Id == id) && mac.Any(t => t.Id == id)) && win.Any(t => t.Id == "strays")
+                      && !mac.Any(t => t.Id is "strays" or "tray") && !win.Any(t => t.Id == "menubar");
+            Check("help guide topics", ok, $"{win.Count} Windows topics, {mac.Count} macOS topics");
+            var md = Ampm2.Help.HelpContent.ToMarkdown();
+            Check("help guide exports to Markdown", md.StartsWith("# ampm2 help") && md.Contains("## The Saved list"), $"{md.Length} characters");
+        }
+
         // codec round trip, split across arbitrary chunk boundaries
         {
             var frame = Amp.Encode(new[] { Amp.Json("{\"a\":[1,2,3]}"), Amp.Str("id:7"), Array.Empty<byte>() });

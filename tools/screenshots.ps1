@@ -114,6 +114,12 @@ try {
     Invoke-Id $w 'SettingsButton'; Start-Sleep -Milliseconds 500
     Invoke-Name $w 'About'; Start-Sleep -Seconds 1
     Shot $app.Id 'about.png'
+    Invoke-Name $w 'Close'; Start-Sleep -Milliseconds 500
+    Invoke-Id $w 'HelpButton'; Start-Sleep -Seconds 2
+    $hw = $A::RootElement.FindAll($Scope::Children, (Cond $A::ProcessIdProperty $app.Id)) | Where-Object { $_.Current.Name -eq 'ampm2 Help' } | Select-Object -First 1
+    if (-not $hw) { $hw = $w.FindFirst($Scope::Children, (Cond $A::NameProperty 'ampm2 Help')) }
+    Select-Row $hw 'The Saved list'; Start-Sleep -Seconds 1
+    Shot $app.Id 'help.png' 'ampm2 Help'
     $app | Stop-Process -Force; Start-Sleep -Seconds 1
 
     Write-Host 'light theme'
