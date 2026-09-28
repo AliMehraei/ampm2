@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-28
+
 ### Added
 - **Update banner**, in both apps. When a newer release is out, a banner in the logo's colours appears at the top of the window with **What's new** and **Install and restart**, and shows the download progress while it installs. Close it to hide it until the next version.
 - ampm2 checks for updates in the background, about 8 seconds after it starts and then every 12 hours. A failed background check stays silent.
@@ -99,7 +101,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.5.0
 [1.4.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.4.0
 [1.3.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.3.0
 [1.2.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.2.0
