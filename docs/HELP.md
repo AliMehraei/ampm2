@@ -268,8 +268,8 @@ This problem does not exist on macOS. *(macOS)*
 - **Full list refresh** *(Windows)*: A backstop that re-reads the whole pm2 list every 30 seconds to 5 minutes. Changes normally arrive instantly over pm2's event bus; asking pm2 for its list makes pm2 run a Windows system query, so this stays infrequent.
 - **Close button hides to the tray** *(Windows)*: Closing the window keeps ampm2 running in the tray. Turn it off to quit on close.
 - **Closing the window keeps ampm2 in the menu bar** *(macOS)*: Turn it off to quit when the window closes.
-- **Minimize button hides to the tray** *(Windows)*: Minimizing removes ampm2 from the taskbar and keeps only the tray icon. Click the tray icon to bring the window back. Off by default.
-- **Minimizing hides ampm2 to the menu bar** *(macOS)*: Minimizing hides the window instead of sending it to the Dock. Click the menu bar icon to bring it back. Off by default.
+- **Minimize button hides to the tray** *(Windows)*: Minimizing removes ampm2 from the taskbar and keeps only the tray icon. Click the tray icon to bring the window back. On by default.
+- **Minimizing hides ampm2 to the menu bar** *(macOS)*: Minimizing hides the window instead of sending it to the Dock. Click the menu bar icon to bring it back. On by default.
 - **Start hidden in the tray** *(Windows)*: ampm2 starts without showing its window.
 - **Confirm delete / stop all / flush**: Ask before destructive actions.
 - **GPU rendering** *(Windows)*: Off by default, which saves about 50 MB of memory. Turn it on if animations or scrolling look slow. Needs a restart.

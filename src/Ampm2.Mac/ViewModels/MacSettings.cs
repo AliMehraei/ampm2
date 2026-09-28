@@ -12,7 +12,9 @@ public sealed class MacSettings
     public int MetricsIntervalSec { get; set; } = 2;
     public int ListIntervalSec { get; set; } = 60;
     public bool CloseToMenuBar { get; set; } = true;
-    public bool MinimizeToMenuBar { get; set; }              // minimizing hides the window (menu bar icon only) instead of the Dock
+    public bool MinimizeToMenuBar { get; set; } = true;       // minimizing hides the window (menu bar icon only) instead of the Dock
+    /// <summary>Bumped when a default changes for existing users; see <see cref="Upgrade"/>.</summary>
+    public int SettingsVersion { get; set; }
     public bool ConfirmDestructive { get; set; } = true;
     public bool AutoSyncSavedList { get; set; } = true;
     public bool SaveAfterStartingSaved { get; set; } = true;
@@ -28,10 +30,20 @@ public sealed class MacSettings
         try
         {
             if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize(File.ReadAllText(FilePath), MacSettingsJson.Default.MacSettings) ?? new MacSettings();
+                return (JsonSerializer.Deserialize(File.ReadAllText(FilePath), MacSettingsJson.Default.MacSettings) ?? new MacSettings()).Upgrade();
         }
         catch { }
-        return new MacSettings();
+        return new MacSettings { SettingsVersion = Current };
+    }
+
+    private const int Current = 1;
+
+    /// <summary>One-time changes for settings saved by an older version (a saved value otherwise always wins over a new default).</summary>
+    private MacSettings Upgrade()
+    {
+        if (SettingsVersion < 1) MinimizeToMenuBar = true;   // 1.6.1: minimize to the menu bar is on by default
+        if (SettingsVersion < Current) { SettingsVersion = Current; Save(); }
+        return this;
     }
 
     public void Save()

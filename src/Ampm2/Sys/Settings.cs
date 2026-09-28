@@ -11,7 +11,9 @@ public sealed class Settings
     public int MetricsIntervalSec { get; set; } = 2;       // native CPU/memory sampling while visible
     public int ListIntervalSec { get; set; } = 60;         // backstop pm2 list refresh (pm2 itself spawns WMI per list call)
     public bool CloseToTray { get; set; } = true;
-    public bool MinimizeToTray { get; set; }                 // minimize button hides the window to the tray (no taskbar button)
+    public bool MinimizeToTray { get; set; } = true;          // minimize button hides the window to the tray (no taskbar button)
+    /// <summary>Bumped when a default changes for existing users; see <see cref="Upgrade"/>.</summary>
+    public int SettingsVersion { get; set; }
     public bool StartMinimized { get; set; }
     public bool ConfirmDestructive { get; set; } = true;
     public bool GpuRendering { get; set; }                    // off = software rendering, the low-memory default
@@ -32,10 +34,20 @@ public sealed class Settings
         try
         {
             if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize(File.ReadAllText(FilePath), SettingsJson.Default.Settings) ?? new Settings();
+                return (JsonSerializer.Deserialize(File.ReadAllText(FilePath), SettingsJson.Default.Settings) ?? new Settings()).Upgrade();
         }
         catch { }
-        return new Settings();
+        return new Settings { SettingsVersion = Current };
+    }
+
+    private const int Current = 1;
+
+    /// <summary>One-time changes for settings saved by an older version (a saved value otherwise always wins over a new default).</summary>
+    private Settings Upgrade()
+    {
+        if (SettingsVersion < 1) MinimizeToTray = true;   // 1.6.1: minimize to tray is on by default
+        if (SettingsVersion < Current) { SettingsVersion = Current; Save(); }
+        return this;
     }
 
     public void Save()

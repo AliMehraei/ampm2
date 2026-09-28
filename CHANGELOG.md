@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-09-28
+
+### Changed
+- **Minimize to tray** (Windows) and **minimize to the menu bar** (macOS) are now on by default. Existing installations get the new default once, on the first start after updating; if you turn it off afterwards, it stays off.
+
 ## [1.6.0] - 2026-09-28
 
 ### Added
@@ -107,7 +112,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.1
 [1.6.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.0
 [1.5.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.5.0
 [1.4.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.4.0
