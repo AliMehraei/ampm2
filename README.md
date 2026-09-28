@@ -162,7 +162,9 @@ Its text, including the GitHub link, comes from `src/Ampm2.Core/AppInfo.cs`.
 
 ### Updates
 
-About also checks GitHub for a newer release, and **Install … and restart** updates ampm2 in place. Your pm2
+ampm2 checks GitHub in the background (shortly after it starts, then every 12 hours) and shows a banner at the top of the
+window when a newer release is out. Closing it hides it until the next version, and Settings ▸ *Check for updates* turns
+it off. About also checks on demand, and **Install … and restart** updates ampm2 in place. Your pm2
 processes keep running. The download is checked against the release's `SHA256SUMS.txt` before anything is
 installed, so a release must ship that file. Windows runs the new installer silently
 (`/SILENT /RELAUNCH`) once ampm2 has closed. macOS unpacks the new `ampm2.app` next to the running one and swaps

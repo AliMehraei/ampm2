@@ -105,6 +105,10 @@ public sealed partial class MainViewModel : ObservableObject
         CheckUpdateCommand = new AsyncCommand(() => Update.CheckAsync());
         InstallUpdateCommand = new AsyncCommand(() => Update.InstallAsync(App.ExitApp));
         OpenReleaseCommand = new RelayCommand(() => OpenUrl(Update.ReleasePage));
+        DismissUpdateCommand = new RelayCommand(() => Update.DismissBanner());
+        Update.AutoCheck = settings.CheckForUpdates;
+        Update.DismissedVersion = settings.DismissedUpdate;
+        Update.Dismissed += () => { Settings.DismissedUpdate = Update.DismissedVersion; Settings.Save(); };
         CloseAboutCommand = new RelayCommand(() => AboutOpen = false);
         OpenEmailCommand = new RelayCommand(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new RelayCommand(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
@@ -132,6 +136,13 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand CheckUpdateCommand { get; }
     public ICommand InstallUpdateCommand { get; }
     public ICommand OpenReleaseCommand { get; }
+    public ICommand DismissUpdateCommand { get; }
+    /// <summary>Settings switch: background update checks and the banner.</summary>
+    public bool CheckForUpdates
+    {
+        get => Settings.CheckForUpdates;
+        set { Settings.CheckForUpdates = value; Update.AutoCheck = value; Raise(); }
+    }
     public bool HasGitHub => AppInfo.GitHubUrl.Length > 0;
     private bool _aboutOpen;
     public bool AboutOpen { get => _aboutOpen; set => Set(ref _aboutOpen, value); }

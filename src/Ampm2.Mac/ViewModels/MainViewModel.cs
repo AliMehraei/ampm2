@@ -81,6 +81,10 @@ public sealed class MainViewModel : ObservableObject
         CheckUpdateCommand = Command.Async(() => Update.CheckAsync());
         InstallUpdateCommand = Command.Async(() => Update.InstallAsync(App.Quit));
         OpenReleaseCommand = new Command(() => OpenUrl(Update.ReleasePage));
+        DismissUpdateCommand = new Command(() => Update.DismissBanner());
+        Update.AutoCheck = settings.CheckForUpdates;
+        Update.DismissedVersion = settings.DismissedUpdate;
+        Update.Dismissed += () => { Settings.DismissedUpdate = Update.DismissedVersion; Settings.Save(); };
         CloseAboutCommand = new Command(() => AboutOpen = false);
         OpenEmailCommand = new Command(() => OpenUrl("mailto:" + AppInfo.Email + "?subject=ampm2%20" + AppInfo.Version));
         OpenGitHubCommand = new Command(() => OpenUrl(AppInfo.GitHubUrl), () => HasGitHub);
@@ -530,6 +534,13 @@ public sealed class MainViewModel : ObservableObject
     public Command CheckUpdateCommand { get; }
     public Command InstallUpdateCommand { get; }
     public Command OpenReleaseCommand { get; }
+    public Command DismissUpdateCommand { get; }
+    /// <summary>Settings switch: background update checks and the banner.</summary>
+    public bool CheckForUpdates
+    {
+        get => Settings.CheckForUpdates;
+        set { Settings.CheckForUpdates = value; Update.AutoCheck = value; Raise(); }
+    }
     public Command DialogOkCommand { get; }
     public Command DialogCancelCommand { get; }
     public Command AddCommand { get; }

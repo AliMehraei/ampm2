@@ -70,6 +70,7 @@ public partial class App : Application
         if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime act)
             act.Activated += (_, e) => { if (e.Kind == ActivationKind.Reopen) ShowMainWindow(); };
         _ = Vm.ConnectAsync();
+        Vm.Update.StartAutoCheck(TimeSpan.FromSeconds(8));   // banner at the top when a newer release is out
         base.OnFrameworkInitializationCompleted();
     }
 

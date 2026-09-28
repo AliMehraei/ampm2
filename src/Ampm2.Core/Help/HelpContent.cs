@@ -323,6 +323,8 @@ public static class HelpContent
             B("Open About", "Click the ⓘ button, choose ampm2 ▸ About ampm2, or use the menu bar icon.", M),
             H("Updates"),
             P("Opening About checks GitHub for a newer release (at most every 30 minutes; Check again checks now). When one is available, Install … and restart updates ampm2 in place. Your pm2 processes keep running while ampm2 updates."),
+            B("Update banner", "When a newer release is out, a banner appears at the top of the window with What's new and Install and restart. Close it (×) to hide it until the next version. ampm2 checks shortly after it starts and then every 12 hours; a failed background check stays silent."),
+            B("Turn it off", "Settings ▸ Check for updates and show a banner when one is out. About can still check on demand."),
             B("Checked before installing", "The download is compared with the release's SHA256 checksums. A damaged or unverifiable download is refused, and nothing is installed."),
             B("How it installs", "ampm2 closes, the new installer runs silently (Windows asks for administrator permission first, unless ampm2 already runs as administrator), and ampm2 reopens. Your settings and the tray and startup options are kept.", W),
             B("How it installs", "ampm2 unpacks the new ampm2.app next to the current one, closes, swaps the two and reopens. It needs write access to the folder ampm2.app is in (normally Applications).", M),

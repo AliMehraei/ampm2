@@ -224,6 +224,34 @@
 
         <!-- ================= Banners ================= -->
         <StackPanel Grid.Row="1" Margin="20,0,20,10">
+            <!-- a newer release is out (Settings ▸ Check for updates); closing it hides it until the next version -->
+            <Border x:Name="UpdateBanner" Background="{StaticResource BrandGradient}" CornerRadius="12" Padding="14,10,10,10" Margin="0,0,0,10"
+                    Visibility="{Binding Update.ShowBanner, Converter={StaticResource BoolVis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="10" Background="#33FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE896;" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Update.BannerTitle}" Foreground="White" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Update.BannerDetail}" Foreground="#E0FFFFFF" FontSize="12" TextWrapping="Wrap" Margin="0,1,0,0"/>
+                        <ProgressBar Style="{StaticResource SlimProgress}" Background="#40FFFFFF" Foreground="White" MaxWidth="420" HorizontalAlignment="Stretch" Margin="0,7,0,2"
+                                     Value="{Binding Update.Progress, Mode=OneWay}" IsIndeterminate="{Binding Update.ProgressUnknown, Mode=OneWay}"
+                                     Visibility="{Binding Update.ShowProgress, Converter={StaticResource BoolVis}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0"
+                                Visibility="{Binding Update.ShowActions, Converter={StaticResource BoolVis}}">
+                        <Button Style="{StaticResource BannerGhostBtn}" Content="What's new" Command="{Binding OpenReleaseCommand}" ToolTip="Opens the release notes on GitHub"/>
+                        <Button x:Name="BannerInstallButton" Style="{StaticResource BannerBtn}" Content="Install and restart" Margin="8,0,0,0" Command="{Binding InstallUpdateCommand}"
+                                ToolTip="Downloads the installer, checks it and installs it. ampm2 reopens when it is done."
+                                Visibility="{Binding Update.CanInstallNow, Converter={StaticResource BoolVis}}"/>
+                        <Button Style="{StaticResource BannerBtn}" Content="Download" Margin="8,0,0,0" Command="{Binding OpenReleaseCommand}"
+                                Visibility="{Binding Update.CanDownloadOnly, Converter={StaticResource BoolVis}}"/>
+                        <Button x:Name="BannerCloseButton" Style="{StaticResource BannerIconBtn}" Content="&#xE711;" Margin="6,0,0,0" Command="{Binding DismissUpdateCommand}"
+                                ToolTip="Hide until the next version" AutomationProperties.Name="Hide update banner"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
             <Border Background="{DynamicResource LaunchingSoft}" CornerRadius="10" Padding="14,9"
                     Visibility="{Binding HasStrays, Converter={StaticResource BoolVis}}">
                 <Grid>
@@ -1101,6 +1129,7 @@
                     <CheckBox Style="{StaticResource Switch}" Content="Close button hides to the tray" IsChecked="{Binding Settings.CloseToTray}" Margin="0,0,0,12"/>
                     <CheckBox Style="{StaticResource Switch}" Content="Start hidden in the tray" IsChecked="{Binding Settings.StartMinimized}" Margin="0,0,0,12"/>
                     <CheckBox Style="{StaticResource Switch}" Content="Confirm delete / stop all / flush" IsChecked="{Binding Settings.ConfirmDestructive}" Margin="0,0,0,12"/>
+                    <CheckBox x:Name="CheckUpdatesSwitch" Style="{StaticResource Switch}" Content="Check for updates and show a banner when one is out" IsChecked="{Binding CheckForUpdates}" Margin="0,0,0,12"/>
                     <CheckBox Style="{StaticResource Switch}" Content="GPU rendering (+50 MB memory, needs restart)" IsChecked="{Binding Settings.GpuRendering}" Margin="0,0,0,12"/>
                     <CheckBox x:Name="ElevatedTaskSwitch" Style="{StaticResource Switch}" Content="Start as administrator without a UAC prompt"
                               IsEnabled="{Binding IsElevated}" Click="ElevatedTask_Click" Margin="0,0,0,4"/>

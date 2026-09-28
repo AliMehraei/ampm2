@@ -81,11 +81,63 @@ public sealed class UpdateModel : INotifyPropertyChanged
         _ => _error,
     };
 
-    /// <summary>Checks GitHub. <paramref name="quiet"/> (opening About) skips it when a check ran in the last 30 minutes.</summary>
+    // ---------------- banner ----------------
+
+    private bool _autoCheck = true;
+    private string _dismissed = "";
+    private bool _loopStarted;
+
+    /// <summary>Settings ▸ "Check for updates": background checks and the banner at the top of the window.</summary>
+    public bool AutoCheck
+    {
+        get => _autoCheck;
+        set { if (_autoCheck == value) return; _autoCheck = value; RaiseAll(); if (value) _ = CheckAsync(quiet: true); }
+    }
+
+    /// <summary>The version whose banner was closed; it stays hidden until a newer one is released.</summary>
+    public string DismissedVersion { get => _dismissed; set { _dismissed = value ?? ""; RaiseAll(); } }
+
+    /// <summary>Raised when the banner is closed, so the app can save <see cref="DismissedVersion"/>.</summary>
+    public event Action? Dismissed;
+
+    public bool ShowBanner => _autoCheck && _release != null && _release.Version > Updater.Current && _dismissed != LatestVersion
+                              && _state is UpdateState.Available or UpdateState.Downloading or UpdateState.Installing or UpdateState.Failed;
+
+    public string BannerTitle => _state == UpdateState.Available ? $"ampm2 {LatestVersion} is available" : StatusText;
+
+    public string BannerDetail => _state == UpdateState.Available && CanInstallNow
+        ? $"You have {CurrentVersion}. Install it now; your pm2 processes keep running."
+        : Detail;
+
+    public void DismissBanner()
+    {
+        _dismissed = LatestVersion;
+        Dismissed?.Invoke();
+        RaiseAll();
+    }
+
+    /// <summary>Checks after <paramref name="firstDelay"/>, then every 12 hours while <see cref="AutoCheck"/> is on. Call once, on the UI thread.</summary>
+    public async void StartAutoCheck(TimeSpan firstDelay)
+    {
+        if (_loopStarted) return;
+        _loopStarted = true;
+        await Task.Delay(firstDelay);
+        while (true)
+        {
+            if (_autoCheck) await CheckAsync(quiet: true);
+            await Task.Delay(TimeSpan.FromHours(12));
+        }
+    }
+
+    /// <summary>
+    /// Checks GitHub. <paramref name="quiet"/> (opening About, background checks) skips it when a check ran in the
+    /// last 30 minutes, and a failed quiet check leaves the panel as it was instead of showing an error.
+    /// </summary>
     public async Task CheckAsync(bool quiet = false)
     {
         if (!CanCheck) return;
-        if (quiet && (_state == UpdateState.Available || (_state == UpdateState.UpToDate && DateTime.UtcNow - _checkedAt < TimeSpan.FromMinutes(30)))) return;
+        if (quiet && _checkedAt != default && DateTime.UtcNow - _checkedAt < TimeSpan.FromMinutes(30) && _state is UpdateState.Available or UpdateState.UpToDate) return;
+        var before = _state;
         State = UpdateState.Checking;
         try
         {
@@ -93,7 +145,11 @@ public sealed class UpdateModel : INotifyPropertyChanged
             _checkedAt = DateTime.UtcNow;
             State = _release.Version > Updater.Current ? UpdateState.Available : UpdateState.UpToDate;
         }
-        catch (Exception ex) { Fail(ex); }
+        catch (Exception ex)
+        {
+            if (quiet) State = before == UpdateState.Failed ? UpdateState.Idle : before;
+            else Fail(ex);
+        }
         RaiseAll();
     }
 

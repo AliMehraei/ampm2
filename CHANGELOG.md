@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Update banner**, in both apps. When a newer release is out, a banner in the logo's colours appears at the top of the window with **What's new** and **Install and restart**, and shows the download progress while it installs. Close it to hide it until the next version.
+- ampm2 checks for updates in the background, about 8 seconds after it starts and then every 12 hours. A failed background check stays silent.
+- Settings ▸ **Check for updates and show a banner when one is out**, on by default. About can still check on demand.
+
 ## [1.4.0] - 2026-09-25
 
 ### Added

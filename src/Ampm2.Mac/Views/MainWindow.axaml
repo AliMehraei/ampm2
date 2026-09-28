@@ -20,7 +20,7 @@
         <KeyBinding Gesture="Cmd+OemComma" Command="{Binding OpenSettingsCommand}"/>
     </Window.KeyBindings>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- ================= header ================= -->
         <Border Grid.Row="0" x:Name="HeaderBar" Background="Transparent" Padding="20,14,20,12">
@@ -85,8 +85,33 @@
             </Grid>
         </Border>
 
+        <!-- ================= update banner ================= -->
+        <!-- a newer release is out (Settings ▸ Check for updates); closing it hides it until the next version -->
+        <Border Grid.Row="1" Classes="updatebanner" Margin="20,0,20,12" IsVisible="{Binding Update.ShowBanner}">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="36" Height="36" CornerRadius="10" Background="#33FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource IcDownload}" Width="16" Height="16" Foreground="White"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Update.BannerTitle}" Foreground="White" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding Update.BannerDetail}" Foreground="#E0FFFFFF" FontSize="12" TextWrapping="Wrap" Margin="0,1,0,0"/>
+                    <ProgressBar Classes="slim onbrand" MaxWidth="420" Margin="0,7,0,2" Minimum="0" Maximum="100" Value="{Binding Update.Progress}"
+                                 IsIndeterminate="{Binding Update.ProgressUnknown}" IsVisible="{Binding Update.ShowProgress}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="12,0,0,0" IsVisible="{Binding Update.ShowActions}">
+                    <Button Classes="onbrand ghost-onbrand" Content="What's new" Command="{Binding OpenReleaseCommand}" ToolTip.Tip="Opens the release notes on GitHub"/>
+                    <Button Classes="onbrand" Content="Install and restart" Command="{Binding InstallUpdateCommand}" AutomationProperties.Name="Install update now"
+                            ToolTip.Tip="Downloads the new ampm2.app, checks it and replaces this one. ampm2 reopens when it is done." IsVisible="{Binding Update.CanInstallNow}"/>
+                    <Button Classes="onbrand" Content="Download" Command="{Binding OpenReleaseCommand}" IsVisible="{Binding Update.CanDownloadOnly}"/>
+                    <Button Classes="onbrand icon-onbrand" Command="{Binding DismissUpdateCommand}" ToolTip.Tip="Hide until the next version" AutomationProperties.Name="Hide update banner">
+                        <PathIcon Data="{StaticResource IcClose}" Width="10" Height="10" Foreground="White"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <!-- ================= content ================= -->
-        <Grid Grid.Row="1" Margin="20,0,20,20" ColumnDefinitions="*,14,420">
+        <Grid Grid.Row="2" Margin="20,0,20,20" ColumnDefinitions="*,14,420">
 
             <!-- list card -->
             <Border Classes="card">
@@ -556,7 +581,7 @@
         </Grid>
 
         <!-- ================= toasts ================= -->
-        <ItemsControl Grid.RowSpan="2" ItemsSource="{Binding Toasts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" Width="340">
+        <ItemsControl Grid.RowSpan="3" ItemsSource="{Binding Toasts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" Width="340">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,8,0,0"
@@ -574,7 +599,7 @@
         </ItemsControl>
 
         <!-- ================= settings ================= -->
-        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding SettingsOpen}" PointerPressed="Overlay_PointerPressed" Tag="settings">
+        <Panel Grid.RowSpan="3" Background="{DynamicResource Overlay}" IsVisible="{Binding SettingsOpen}" PointerPressed="Overlay_PointerPressed" Tag="settings">
             <Border Classes="card" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" PointerPressed="Card_PointerPressed">
                 <StackPanel Spacing="12">
                     <DockPanel>
@@ -602,6 +627,7 @@
                     </StackPanel>
                     <ToggleSwitch Content="Closing the window keeps ampm2 in the menu bar" IsChecked="{Binding CloseToMenuBar}" OnContent="" OffContent=""/>
                     <ToggleSwitch Content="Confirm delete / stop all / flush" IsChecked="{Binding ConfirmDestructive}" OnContent="" OffContent=""/>
+                    <ToggleSwitch Content="Check for updates and show a banner when one is out" IsChecked="{Binding CheckForUpdates}" OnContent="" OffContent=""/>
                     <DockPanel Margin="0,6,0,0">
                         <TextBlock Classes="faint" FontSize="11.5" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="300">
                             <Run Text="Settings and the Saved list live in "/><Run Text="{Binding DataFolder}"/>
@@ -613,7 +639,7 @@
         </Panel>
 
         <!-- ================= about ================= -->
-        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding AboutOpen}" PointerPressed="Overlay_PointerPressed" Tag="about">
+        <Panel Grid.RowSpan="3" Background="{DynamicResource Overlay}" IsVisible="{Binding AboutOpen}" PointerPressed="Overlay_PointerPressed" Tag="about">
             <Border Classes="card" Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28,24" PointerPressed="Card_PointerPressed">
                 <StackPanel Spacing="18">
                     <DockPanel>
@@ -693,7 +719,7 @@
         </Panel>
 
         <!-- ================= confirm dialog ================= -->
-        <Panel Grid.RowSpan="2" Background="{DynamicResource Overlay}" IsVisible="{Binding HasDialog}">
+        <Panel Grid.RowSpan="3" Background="{DynamicResource Overlay}" IsVisible="{Binding HasDialog}">
             <Border Classes="card" Width="440" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24,20" DataContext="{Binding Dialog}">
                 <StackPanel Spacing="10">
                     <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>

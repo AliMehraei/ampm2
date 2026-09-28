@@ -124,6 +124,7 @@ public partial class App : Application
         else Vm.SetVisible(false);
 
         if (args.Contains("--updated")) Toast("Updated", $"ampm2 was updated to {AppInfo.Version}.", ToastKind.Success);
+        Vm.Update.StartAutoCheck(TimeSpan.FromSeconds(8));   // banner at the top when a newer release is out
 
         await Vm.ConnectAsync();
         UpdateTray();
