@@ -897,6 +897,7 @@ public sealed class MainViewModel : ObservableObject
         set { Settings.MetricsIntervalSec = value switch { 0 => 1, 1 => 2, 2 => 5, _ => 10 }; ApplyIntervals(); Raise(); }
     }
     public bool CloseToMenuBar { get => Settings.CloseToMenuBar; set { Settings.CloseToMenuBar = value; Raise(); } }
+    public bool MinimizeToMenuBar { get => Settings.MinimizeToMenuBar; set { Settings.MinimizeToMenuBar = value; Raise(); } }
     public bool ConfirmDestructive { get => Settings.ConfirmDestructive; set { Settings.ConfirmDestructive = value; Raise(); } }
 
     private DialogModel? _dialog;

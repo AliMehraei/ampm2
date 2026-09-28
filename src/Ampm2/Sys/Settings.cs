@@ -11,6 +11,7 @@ public sealed class Settings
     public int MetricsIntervalSec { get; set; } = 2;       // native CPU/memory sampling while visible
     public int ListIntervalSec { get; set; } = 60;         // backstop pm2 list refresh (pm2 itself spawns WMI per list call)
     public bool CloseToTray { get; set; } = true;
+    public bool MinimizeToTray { get; set; }                 // minimize button hides the window to the tray (no taskbar button)
     public bool StartMinimized { get; set; }
     public bool ConfirmDestructive { get; set; } = true;
     public bool GpuRendering { get; set; }                    // off = software rendering, the low-memory default

@@ -42,11 +42,24 @@ public partial class MainWindow : Window
         };
         StateChanged += (_, _) =>
         {
-            if (WindowState == WindowState.Minimized) { vm.SetVisible(false); Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, Native.TrimSelf); }
-            else vm.SetVisible(IsVisible);
+            if (WindowState == WindowState.Minimized)
+            {
+                // Settings ▸ Minimize button hides to the tray: drop the taskbar button, keep only the tray icon
+                if (vm.Settings.MinimizeToTray) { App.HideMainWindow(); return; }
+                vm.SetVisible(false);
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, Native.TrimSelf);
+            }
+            else
+            {
+                RestoreState = WindowState;
+                vm.SetVisible(IsVisible);
+            }
         };
         PreviewKeyDown += OnPreviewKeyDown;
     }
+
+    /// <summary>Normal or Maximized: what a window minimized (or hidden to the tray) comes back as.</summary>
+    public WindowState RestoreState { get; private set; } = WindowState.Normal;
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {

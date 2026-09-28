@@ -626,6 +626,8 @@
                                    Text="Status changes arrive instantly over pm2's event bus. Sampling pauses while the window is hidden."/>
                     </StackPanel>
                     <ToggleSwitch Content="Closing the window keeps ampm2 in the menu bar" IsChecked="{Binding CloseToMenuBar}" OnContent="" OffContent=""/>
+                    <ToggleSwitch Content="Minimizing hides ampm2 to the menu bar" IsChecked="{Binding MinimizeToMenuBar}" OnContent="" OffContent=""
+                                  AutomationProperties.Name="Minimize to menu bar"/>
                     <ToggleSwitch Content="Confirm delete / stop all / flush" IsChecked="{Binding ConfirmDestructive}" OnContent="" OffContent=""/>
                     <ToggleSwitch Content="Check for updates and show a banner when one is out" IsChecked="{Binding CheckForUpdates}" OnContent="" OffContent=""/>
                     <DockPanel Margin="0,6,0,0">

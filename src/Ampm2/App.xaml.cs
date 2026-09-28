@@ -202,7 +202,7 @@ public partial class App : Application
     {
         if (_window == null) return;
         _window.Show();
-        if (_window.WindowState == WindowState.Minimized) _window.WindowState = WindowState.Normal;
+        if (_window.WindowState == WindowState.Minimized) _window.WindowState = _window.RestoreState;
         _window.Activate();
         _window.Topmost = true; _window.Topmost = false;
         Vm?.SetVisible(true);

@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-28
+
+### Added
+- **Minimize to tray** (Windows): Settings ▸ *Minimize button hides to the tray*. Minimizing removes ampm2 from the taskbar and keeps only the tray icon; clicking the tray icon brings the window back as it was, maximized or not. Off by default.
+- **Minimize to the menu bar** (macOS): Settings ▸ *Minimizing hides ampm2 to the menu bar*, instead of sending the window to the Dock. Off by default.
+
 ## [1.5.0] - 2026-09-28
 
 ### Added
@@ -101,7 +107,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.0
 [1.5.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.5.0
 [1.4.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.4.0
 [1.3.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.3.0

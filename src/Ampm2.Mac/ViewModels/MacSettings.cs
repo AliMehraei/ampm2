@@ -12,6 +12,7 @@ public sealed class MacSettings
     public int MetricsIntervalSec { get; set; } = 2;
     public int ListIntervalSec { get; set; } = 60;
     public bool CloseToMenuBar { get; set; } = true;
+    public bool MinimizeToMenuBar { get; set; }              // minimizing hides the window (menu bar icon only) instead of the Dock
     public bool ConfirmDestructive { get; set; } = true;
     public bool AutoSyncSavedList { get; set; } = true;
     public bool SaveAfterStartingSaved { get; set; } = true;

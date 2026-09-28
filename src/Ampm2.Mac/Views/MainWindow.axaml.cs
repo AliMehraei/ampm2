@@ -45,9 +45,20 @@ public partial class MainWindow : Window
         Activated += (_, _) => vm.SetVisible(true);
         PropertyChanged += (_, e) =>
         {
-            if (e.Property == WindowStateProperty) vm.SetVisible(WindowState != WindowState.Minimized && IsVisible);
+            if (e.Property != WindowStateProperty) return;
+            // Settings ▸ Minimizing hides ampm2 to the menu bar: hide instead of going to the Dock
+            if (WindowState == WindowState.Minimized && vm.Settings.MinimizeToMenuBar)
+            {
+                Dispatcher.UIThread.Post(() => { WindowState = RestoreState; App.HideMainWindow(); });
+                return;
+            }
+            if (WindowState != WindowState.Minimized) RestoreState = WindowState;
+            vm.SetVisible(WindowState != WindowState.Minimized && IsVisible);
         };
     }
+
+    /// <summary>Normal or Maximized: what the window comes back as after it was hidden from a minimize.</summary>
+    private WindowState RestoreState { get; set; } = WindowState.Normal;
 
     private void OnVmChanged(object? sender, PropertyChangedEventArgs e)
     {

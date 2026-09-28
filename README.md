@@ -113,7 +113,8 @@ Measured on this machine (4 pm2 apps, published build):
   unlike pm2 + `npm.cmd`), or ecosystem file. Name, cwd, args, instances/cluster, max memory restart, restart delay, env vars,
   watch, auto restart, timestamps. ampm2 writes the app config to `%APPDATA%\ampm2\apps\<name>.json` and runs `pm2 start` with it.
 * Save / resurrect / flush logs / kill daemon / start daemon.
-* Tray icon with a status badge (red = something errored), tray menu, single instance, dark/light/system theme.
+* Tray icon with a status badge (red = something errored), tray menu, optional minimize to tray, single instance,
+  dark/light/system theme.
 * Built-in, searchable help guide (F1 / ⌘?), with "Learn more" links from the screens that need explaining.
 
 Destructive dialogs open with **Cancel** focused, and Enter only presses the focused button: a keystroke meant

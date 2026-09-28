@@ -1127,6 +1127,7 @@
                                Text="Status changes arrive instantly over pm2's event bus. The full list refresh is only a backstop, because pm2 starts a WMI/PowerShell query every time it is asked for its list. Sampling pauses while ampm2 is hidden."/>
 
                     <CheckBox Style="{StaticResource Switch}" Content="Close button hides to the tray" IsChecked="{Binding Settings.CloseToTray}" Margin="0,0,0,12"/>
+                    <CheckBox x:Name="MinimizeToTraySwitch" Style="{StaticResource Switch}" Content="Minimize button hides to the tray" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,0,0,12"/>
                     <CheckBox Style="{StaticResource Switch}" Content="Start hidden in the tray" IsChecked="{Binding Settings.StartMinimized}" Margin="0,0,0,12"/>
                     <CheckBox Style="{StaticResource Switch}" Content="Confirm delete / stop all / flush" IsChecked="{Binding Settings.ConfirmDestructive}" Margin="0,0,0,12"/>
                     <CheckBox x:Name="CheckUpdatesSwitch" Style="{StaticResource Switch}" Content="Check for updates and show a banner when one is out" IsChecked="{Binding CheckForUpdates}" Margin="0,0,0,12"/>
