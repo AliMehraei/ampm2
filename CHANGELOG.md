@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-05
+
 ### Added
 - **Search and filters in the Saved list**, in both apps: a search box (name, script, working folder and arguments) and **All / In pm2 / Not in pm2** with counts, the same as in the Processes view. On Windows, Ctrl+F jumps to the Saved list's search box while that view is open, and Esc clears it. A filtered-out app is no longer selected, so bulk actions only touch what you can see; Start missing and Export all still act on the whole list.
 
@@ -115,7 +117,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.7.0
 [1.6.1]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.1
 [1.6.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.0
 [1.5.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.5.0
