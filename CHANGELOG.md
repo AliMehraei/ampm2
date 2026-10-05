@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Search and filters in the Saved list**, in both apps: a search box (name, script, working folder and arguments) and **All / In pm2 / Not in pm2** with counts, the same as in the Processes view. On Windows, Ctrl+F jumps to the Saved list's search box while that view is open, and Esc clears it. A filtered-out app is no longer selected, so bulk actions only touch what you can see; Start missing and Export all still act on the whole list.
+
 ## [1.6.1] - 2026-09-28
 
 ### Changed

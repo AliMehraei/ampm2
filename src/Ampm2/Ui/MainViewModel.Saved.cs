@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using Ampm2.Pm2;
 using Ampm2.Sys;
@@ -54,7 +55,53 @@ public sealed partial class MainViewModel
         SaveDefinitionCommand = new RelayCommand(SaveDefinition, () => SelectedSaved != null && DefinitionDirty);
         RevertDefinitionCommand = new RelayCommand(() => { DefinitionText = SelectedSaved?.Json ?? ""; }, () => DefinitionDirty);
         OpenSavedFileCommand = new RelayCommand(() => OpenPathCommand.Execute(AppLibrary.FilePath));
+        SavedView = new ListCollectionView(SavedItems) { Filter = FilterSaved };
         RebuildSaved();
+    }
+
+    // ---------------- search + filter ----------------
+
+    /// <summary>What the Saved list shows: <see cref="SavedItems"/> narrowed by the search box and the All / In pm2 / Not in pm2 filter.</summary>
+    public ListCollectionView SavedView { get; private set; } = null!;
+
+    private string _savedSearch = "";
+    public string SavedSearch { get => _savedSearch; set { if (Set(ref _savedSearch, value ?? "")) RefreshSavedView(); } }
+
+    private string _savedFilter = "all";   // all | inpm2 | missing
+    public string SavedFilter { get => _savedFilter; set { if (Set(ref _savedFilter, value)) RefreshSavedView(); } }
+
+    public int InPm2Count => SavedItems.Count(s => s.Pm2State is "online" or "stopped" or "errored");
+    public bool SavedNoMatches => SavedItems.Count > 0 && SavedView is { Count: 0 };
+
+    private bool FilterSaved(object o)
+    {
+        if (o is not SavedApp s) return false;
+        if (_savedFilter == "inpm2" && s.Pm2State is not ("online" or "stopped" or "errored")) return false;
+        if (_savedFilter == "missing" && !s.IsMissing) return false;
+        var q = _savedSearch.Trim();
+        if (q.Length == 0) return true;
+        bool Has(string? v) => v?.Contains(q, StringComparison.OrdinalIgnoreCase) == true;
+        return Has(s.Name) || Has(s.Script) || Has(s.Cwd) || Has(ArgsText(s.Def["args"]));
+    }
+
+    /// <summary>pm2 "args" as plain text, whether saved as one string or as an array of strings.</summary>
+    private static string ArgsText(JsonNode? args) => args switch
+    {
+        JsonArray a => string.Join(" ", a.Select(x => x?.ToString() ?? "")),
+        null => "",
+        var v => v.ToString(),
+    };
+
+    private void RefreshSavedView()
+    {
+        if (SavedView == null) return;
+        // a row the filter hides must not stay selected: bulk actions (Start, Export, Remove) act on the selection
+        bool changed = false;
+        foreach (var s in SavedItems)
+            if (s.IsSelected && !FilterSaved(s)) { s.IsSelected = false; changed = true; }
+        SavedView.Refresh();
+        if (changed) UpdateSavedSelectionCount();
+        Raise(nameof(SavedNoMatches)); Raise(nameof(InPm2Count));
     }
 
     // ---------------- view switching ----------------
@@ -203,6 +250,7 @@ public sealed partial class MainViewModel
             s.Pm2State = !IsConnected ? (State == ConnState.NotRunning ? "missing" : "unknown")
                 : live.TryGetValue(s.Name, out var st) ? st : "missing";
         Raise(nameof(MissingCount));
+        RefreshSavedView();   // a state change can move a row in or out of the In pm2 / Not in pm2 filter
         CommandManager.InvalidateRequerySuggested();
     }
 

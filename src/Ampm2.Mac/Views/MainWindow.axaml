@@ -169,6 +169,30 @@
                             </Border>
                         </Grid>
 
+                        <!-- saved list: search + filters (same look as the Processes view) -->
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsSavedView}">
+                            <TextBox x:Name="SavedSearchBox" PlaceholderText="Search name, script, folder…" Text="{Binding SavedSearch}" Width="300" HorizontalAlignment="Left"
+                                     AutomationProperties.Name="Search the Saved list">
+                                <TextBox.InnerLeftContent><PathIcon Data="{StaticResource IcSearch}" Width="13" Height="13" Margin="9,0,0,0" Foreground="{DynamicResource TextFaint}"/></TextBox.InnerLeftContent>
+                            </TextBox>
+                            <Border Grid.Column="1" Classes="segments" Margin="12,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Classes="seg" IsChecked="{Binding IsSavedFilterAll, Mode=OneWay}" Command="{Binding SetSavedFilterCommand}" CommandParameter="all"
+                                                  AutomationProperties.Name="Saved filter all">
+                                        <TextBlock><Run Text="All "/><Run Text="{Binding SavedCount}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </ToggleButton>
+                                    <ToggleButton Classes="seg" IsChecked="{Binding IsSavedFilterInPm2, Mode=OneWay}" Command="{Binding SetSavedFilterCommand}" CommandParameter="inpm2"
+                                                  AutomationProperties.Name="Saved filter in pm2">
+                                        <TextBlock><Run Text="In pm2 "/><Run Text="{Binding InPm2Count}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </ToggleButton>
+                                    <ToggleButton Classes="seg" IsChecked="{Binding IsSavedFilterMissing, Mode=OneWay}" Command="{Binding SetSavedFilterCommand}" CommandParameter="missing"
+                                                  AutomationProperties.Name="Saved filter not in pm2">
+                                        <TextBlock><Run Text="Not in pm2 "/><Run Text="{Binding MissingCount}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </ToggleButton>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
                         <!-- saved list actions -->
                         <WrapPanel IsVisible="{Binding IsSavedView}" ItemSpacing="6" LineSpacing="6">
                             <Button Classes="primary" Command="{Binding StartMissingCommand}" ToolTip.Tip="Start every saved app pm2 does not have">
@@ -274,7 +298,7 @@
                     </ListBox>
 
                     <!-- saved rows -->
-                    <ListBox Grid.Row="1" Grid.RowSpan="2" Classes="rows" ItemsSource="{Binding SavedItems}" SelectedItem="{Binding SelectedSaved}"
+                    <ListBox Grid.Row="1" Grid.RowSpan="2" Classes="rows" ItemsSource="{Binding ShownSaved}" SelectedItem="{Binding SelectedSaved}"
                              IsVisible="{Binding IsSavedView}" Padding="0,0,0,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -327,6 +351,12 @@
                         <TextBlock Classes="statetext"
                                    Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
                         <Button Classes="ghost" Content="Learn more" HorizontalAlignment="Center" Command="{Binding OpenHelpCommand}" CommandParameter="saved"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Classes="state" IsVisible="{Binding SavedNoMatches}">
+                        <Border Classes="stateicon"><PathIcon Data="{StaticResource IcSearch}" Width="24" Height="24" Foreground="{DynamicResource Accent}"/></Border>
+                        <TextBlock Text="No saved apps match" Classes="statetitle"/>
+                        <TextBlock Text="Try another search, or choose All." Classes="statetext"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" Classes="state" IsVisible="{Binding IsEmpty}">

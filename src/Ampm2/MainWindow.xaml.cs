@@ -85,8 +85,13 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
-        if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { SearchBox.Focus(); SearchBox.SelectAll(); e.Handled = true; }
+        if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            var box = _vm.IsSavedView ? SavedSearchBox : SearchBox;
+            box.Focus(); box.SelectAll(); e.Handled = true;
+        }
         else if (e.Key == Key.Escape && SearchBox.IsKeyboardFocused) { _vm.SearchText = ""; ProcessList.Focus(); e.Handled = true; }
+        else if (e.Key == Key.Escape && SavedSearchBox.IsKeyboardFocused) { _vm.SavedSearch = ""; SavedList.Focus(); e.Handled = true; }
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -118,6 +123,11 @@ public partial class MainWindow : Window
     private void Filter_Checked(object sender, RoutedEventArgs e)
     {
         if (sender is RadioButton { Tag: string t }) _vm.StatusFilter = t;
+    }
+
+    private void SavedFilter_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string t } && _vm != null) _vm.SavedFilter = t;
     }
 
     private void ProcessList_SelectionChanged(object sender, SelectionChangedEventArgs e) => _vm.UpdateSelectionCount();

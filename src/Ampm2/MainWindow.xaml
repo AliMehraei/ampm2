@@ -353,6 +353,39 @@
                         </Border>
                         </Grid>
 
+                        <!-- saved list: search + filters (same look as the Processes view) -->
+                        <Grid Margin="0,0,0,10" Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid>
+                                <TextBox x:Name="SavedSearchBox" Style="{StaticResource Field}" Padding="30,6,9,6" Text="{Binding SavedSearch, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Search the Saved list"/>
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" Margin="11,0,0,0" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False"/>
+                                <TextBlock Text="Search name, script, folder…  (Ctrl+F)" Margin="31,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Text, ElementName=SavedSearchBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                            <Border Grid.Column="1" Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3" Margin="12,0,0,0" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="SavedFilterAll" Style="{StaticResource Segment}" GroupName="sflt" Tag="all" Checked="SavedFilter_Checked" IsChecked="True">
+                                        <TextBlock><Run Text="All "/><Run Text="{Binding SavedCount, Mode=OneWay}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </RadioButton>
+                                    <RadioButton x:Name="SavedFilterInPm2" Style="{StaticResource Segment}" GroupName="sflt" Tag="inpm2" Checked="SavedFilter_Checked">
+                                        <TextBlock><Run Text="In pm2 "/><Run Text="{Binding InPm2Count, Mode=OneWay}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </RadioButton>
+                                    <RadioButton x:Name="SavedFilterMissing" Style="{StaticResource Segment}" GroupName="sflt" Tag="missing" Checked="SavedFilter_Checked">
+                                        <TextBlock><Run Text="Not in pm2 "/><Run Text="{Binding MissingCount, Mode=OneWay}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                                    </RadioButton>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
                         <!-- saved list: actions -->
                         <WrapPanel Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}">
                             <Button Style="{StaticResource BtnPrimary}" Padding="11,5" Margin="0,0,6,6" Command="{Binding StartMissingCommand}"
@@ -533,7 +566,7 @@
                     </ListBox>
 
                     <!-- saved list rows -->
-                    <ListBox x:Name="SavedList" Grid.Row="2" ItemsSource="{Binding SavedItems}" SelectedItem="{Binding SelectedSaved}"
+                    <ListBox x:Name="SavedList" Grid.Row="2" ItemsSource="{Binding SavedView}" SelectedItem="{Binding SelectedSaved}"
                              SelectionMode="Extended" Background="Transparent" BorderThickness="0" Padding="0,0,0,8"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="False"
                              Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}"
@@ -618,6 +651,27 @@
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextDim}"
                                    Text="The Saved list is ampm2's own copy of your processes. It fills itself from pm2 while sync is on, and keeps apps even after pm2 forgets them. You can also import an ecosystem file or pm2's dump.pm2."/>
                         <Button Style="{StaticResource BtnGhost}" Content="Learn more" HorizontalAlignment="Center" Margin="0,8,0,0" Command="{Binding OpenHelpCommand}" CommandParameter="saved"/>
+                    </StackPanel>
+
+                    <!-- saved list: nothing matches the search / filter -->
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSavedView}" Value="True"/>
+                                            <Condition Binding="{Binding SavedNoMatches}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" FontSize="26" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="No saved apps match" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,4"/>
+                        <TextBlock Text="Try another search, or choose All." Foreground="{DynamicResource TextDim}" HorizontalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- saved list bulk bar -->

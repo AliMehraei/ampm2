@@ -73,6 +73,7 @@ public sealed class MainViewModel : ObservableObject
         SetFilterCommand = new Command(p => { StatusFilter = p as string ?? "all"; RaiseSegments(); });
         SortCommand = new Command(p => SetSort(p as string ?? "id"));
         SetViewCommand = new Command(p => { ViewMode = p as string ?? "processes"; RaiseSegments(); });
+        SetSavedFilterCommand = new Command(p => { _savedFilter = p as string ?? "all"; ApplySavedView(); RaiseSegments(); });
         SetTabCommand = new Command(p => { DetailTab = p as string ?? "overview"; RaiseSegments(); });
         SetStreamCommand = new Command(p => { LogStream = p as string ?? "all"; RaiseSegments(); });
         OpenSettingsCommand = new Command(() => { AboutOpen = false; SettingsOpen = true; });
@@ -375,7 +376,7 @@ public sealed class MainViewModel : ObservableObject
             if (!Set(ref _viewMode, value)) return;
             foreach (var n in new[] { nameof(IsSavedView), nameof(IsProcessView), nameof(ShowList), nameof(ShowNotRunning), nameof(ShowAccessDenied),
                                       nameof(ShowNoPm2), nameof(ShowError), nameof(ShowConnecting), nameof(IsEmpty), nameof(ShowProcessDetail),
-                                      nameof(ShowSavedDetail), nameof(ShowNoSelection), nameof(SavedEmptyVisible) })
+                                      nameof(ShowSavedDetail), nameof(ShowNoSelection), nameof(SavedEmptyVisible), nameof(SavedNoMatches) })
                 Raise(n);
             if (value == "saved") RefreshSavedStates();
         }
@@ -396,7 +397,8 @@ public sealed class MainViewModel : ObservableObject
     private void RaiseSegments()
     {
         foreach (var n in new[] { nameof(IsProcessView), nameof(IsSavedView), nameof(IsFilterAll), nameof(IsFilterOnline), nameof(IsFilterStopped),
-                                  nameof(IsFilterErrored), nameof(IsStreamAll), nameof(IsStreamOut), nameof(IsStreamErr), nameof(LogsVisible), nameof(OverviewVisible) })
+                                  nameof(IsFilterErrored), nameof(IsStreamAll), nameof(IsStreamOut), nameof(IsStreamErr), nameof(LogsVisible), nameof(OverviewVisible),
+                                  nameof(IsSavedFilterAll), nameof(IsSavedFilterInPm2), nameof(IsSavedFilterMissing), nameof(SavedNoMatches) })
             Raise(n);
     }
     public bool IsProcessView => _viewMode == "processes";
@@ -517,6 +519,7 @@ public sealed class MainViewModel : ObservableObject
     public Command SetFilterCommand { get; }
     public Command SortCommand { get; }
     public Command SetViewCommand { get; }
+    public Command SetSavedFilterCommand { get; }
     public Command SetTabCommand { get; }
     public Command SetStreamCommand { get; }
     public Command OpenSettingsCommand { get; }
@@ -794,7 +797,49 @@ public sealed class MainViewModel : ObservableObject
         foreach (var s in SavedItems)
             s.State = !IsConnected ? (State == ConnState.NotRunning ? "missing" : "unknown") : live.TryGetValue(s.Name, out var st) ? st : "missing";
         Raise(nameof(MissingCount));
+        ApplySavedView();   // a state change can move a row in or out of the In pm2 / Not in pm2 filter
         Command.Requery();
+    }
+
+    // ---------------- saved list: search + filter ----------------
+
+    /// <summary>What the Saved list shows: <see cref="SavedItems"/> narrowed by the search box and the All / In pm2 / Not in pm2 filter.</summary>
+    public ObservableCollection<SavedRow> ShownSaved { get; } = new();
+
+    private string _savedSearch = "";
+    public string SavedSearch { get => _savedSearch; set { if (Set(ref _savedSearch, value ?? "")) ApplySavedView(); } }
+    private string _savedFilter = "all";   // all | inpm2 | missing
+    public bool IsSavedFilterAll => _savedFilter == "all";
+    public bool IsSavedFilterInPm2 => _savedFilter == "inpm2";
+    public bool IsSavedFilterMissing => _savedFilter == "missing";
+    public int InPm2Count => SavedItems.Count(s => s.State is "online" or "stopped" or "errored");
+    public bool SavedNoMatches => IsSavedView && SavedItems.Count > 0 && ShownSaved.Count == 0;
+
+    private bool SavedMatches(SavedRow s)
+    {
+        if (_savedFilter == "inpm2" && s.State is not ("online" or "stopped" or "errored")) return false;
+        if (_savedFilter == "missing" && !s.IsMissing) return false;
+        var q = _savedSearch.Trim();
+        if (q.Length == 0) return true;
+        bool Has(string? v) => v?.Contains(q, StringComparison.OrdinalIgnoreCase) == true;
+        var args = s.Def["args"] is JsonArray a ? string.Join(" ", a.Select(x => x?.ToString() ?? "")) : s.Def["args"]?.ToString();
+        return Has(s.Name) || Has(s.Script) || Has(s.Cwd) || Has(args);
+    }
+
+    /// <summary>Syncs <see cref="ShownSaved"/> with the filter, moving rows instead of recreating them (keeps the selection).</summary>
+    private void ApplySavedView()
+    {
+        var wanted = SavedItems.Where(SavedMatches).ToList();
+        for (int i = ShownSaved.Count - 1; i >= 0; i--) if (!wanted.Contains(ShownSaved[i])) ShownSaved.RemoveAt(i);
+        for (int i = 0; i < wanted.Count; i++)
+        {
+            int cur = ShownSaved.IndexOf(wanted[i]);
+            if (cur < 0) ShownSaved.Insert(i, wanted[i]);
+            else if (cur != i) ShownSaved.Move(cur, i);
+        }
+        // a hidden row must not stay selected: Start / Export / Remove act on the selection
+        if (_selectedSaved != null && !wanted.Contains(_selectedSaved)) SelectedSaved = null;
+        Raise(nameof(InPm2Count)); Raise(nameof(SavedNoMatches));
     }
 
     private async Task StartSavedAsync(List<SavedRow> apps)

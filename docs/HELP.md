@@ -151,6 +151,13 @@ pm2 keeps its list in dump.pm2, but that file is easy to lose: pm2 does not star
 - **Never removes**: When an app disappears from pm2, it stays in the Saved list and shows "not in pm2", with a Start button.
 - **Save from pm2**: Copies the current pm2 list right away, even with sync off.
 
+### Finding an app
+
+- **Search** *(Windows)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case. Esc clears it.
+- **Search** *(macOS)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case.
+- **Ctrl+F** *(Windows)*: In the Saved list view, Ctrl+F jumps to its search box.
+- **All / In pm2 / Not in pm2**: Shows every saved app, only the ones pm2 runs now, or only the ones pm2 does not have. The numbers are the counts. Start missing and Export all always act on the whole list, whatever the filter shows.
+
 ### Getting apps back
 
 - **Start missing**: Starts every saved app pm2 does not have, then saves pm2's list.
