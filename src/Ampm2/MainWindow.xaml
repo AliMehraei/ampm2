@@ -407,6 +407,19 @@
                                 <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xEDE1;" FontSize="11" Margin="0,0,6,0"/><TextBlock Text="Export all…"/></StackPanel>
                             </Button>
                             <Button Style="{StaticResource IconBtn}" Content="&#xE8B7;" ToolTip="Show the saved-list file in Explorer" Margin="0,0,0,6" Command="{Binding OpenSavedFileCommand}"/>
+                            <!-- sort: last run (default) puts what ran most recently on top, e.g. what was running before a restart -->
+                            <StackPanel Orientation="Horizontal" Margin="12,0,0,6" VerticalAlignment="Center">
+                                <TextBlock Text="Sort" Foreground="{DynamicResource TextDim}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="3">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="SavedSortRecent" Style="{StaticResource Segment}" GroupName="ssort" Tag="recent" Content="Last run"
+                                                     IsChecked="{Binding IsSavedSortRecent, Mode=OneWay}" Checked="SavedSort_Checked"
+                                                     ToolTip="Running apps first, then the most recently run. Shows what you ran last, even after a restart."/>
+                                        <RadioButton x:Name="SavedSortName" Style="{StaticResource Segment}" GroupName="ssort" Tag="name" Content="A–Z"
+                                                     IsChecked="{Binding IsSavedSortName, Mode=OneWay}" Checked="SavedSort_Checked"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </WrapPanel>
                     </StackPanel>
 
@@ -580,7 +593,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="112"/>
+                                        <ColumnDefinition Width="150"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.Tag>
                                         <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}"/>
@@ -606,7 +619,7 @@
                                         <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
                                     </Border>
                                     <Grid Grid.Column="2">
-                                        <TextBlock Text="{Binding UpdatedText}" FontSize="11" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                        <TextBlock Text="{Binding LastRunText}" ToolTip="{Binding UpdatedText}" FontSize="11" Foreground="{DynamicResource TextFaint}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>

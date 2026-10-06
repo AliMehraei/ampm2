@@ -157,6 +157,10 @@ pm2 keeps its list in dump.pm2, but that file is easy to lose: pm2 does not star
 - **Search** *(macOS)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case.
 - **Ctrl+F** *(Windows)*: In the Saved list view, Ctrl+F jumps to its search box.
 - **All / In pm2 / Not in pm2**: Shows every saved app, only the ones pm2 runs now, or only the ones pm2 does not have. The numbers are the counts. Start missing and Export all always act on the whole list, whatever the filter shows.
+- **Sort: Last run**: The default. Apps running now come first, then the most recently run, newest first. After a restart, the apps you ran last are at the top, so you can see what to start again. Each row shows "running now", "last run …" or "not run yet"; hover it for the date the app was saved.
+- **Sort: A–Z**: Alphabetical by name. ampm2 remembers the sort you choose.
+
+> Last run is what ampm2 has seen: it records an app while it runs and ampm2 is open (also in the tray or menu bar). The times are kept in run-history.json next to the Saved list, not in the list itself, so exports stay plain ecosystem files.
 
 ### Getting apps back
 

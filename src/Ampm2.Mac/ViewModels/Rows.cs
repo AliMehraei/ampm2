@@ -171,9 +171,15 @@ public sealed class SavedRow : ObservableObject
     public string State
     {
         get => _state;
-        set { if (Set(ref _state, value)) { Raise(nameof(StateText)); Raise(nameof(StateBrush)); Raise(nameof(StateSoftBrush)); Raise(nameof(IsMissing)); } }
+        set { if (Set(ref _state, value)) { Raise(nameof(StateText)); Raise(nameof(StateBrush)); Raise(nameof(StateSoftBrush)); Raise(nameof(IsMissing)); Raise(nameof(LastRunText)); } }
     }
     public bool IsMissing => _state == "missing";
+
+    /// <summary>Last time ampm2 saw this app running (see <see cref="RunHistory"/>); drives the "Last run" sort.</summary>
+    private DateTime? _lastRun;
+    public DateTime? LastRun { get => _lastRun; set { if (Set(ref _lastRun, value)) Raise(nameof(LastRunText)); } }
+    public string LastRunText => RunHistory.Describe(_lastRun, _state == "online");
+    public void RaiseLastRunText() => Raise(nameof(LastRunText));
     public string StateText => _state switch { "missing" => "not in pm2", "unknown" => "pm2 not connected", var s => "in pm2 · " + s };
     private string Key => _state switch { "online" => "Online", "errored" => "Errored", "missing" => "Launching", _ => "Stopped" };
     public IBrush StateBrush => StatusBrushes.For(Key);

@@ -53,6 +53,10 @@ overwrite with an empty list (`pm2 save` after a `pm2 kill`). So ampm2 keeps **i
   disappear from pm2 are **never** removed automatically; they show *not in pm2* with a **Start** button.
 * **Start missing** starts every saved app pm2 does not have (`pm2 start` with the saved definitions), then `pm2 save`.
   After a reboot the "pm2 is not running" screen also offers **Start from Saved list**.
+* **Sorted by last run** (the default): apps running now first, then the most recently run, so after a restart the
+  apps you ran last are at the top. Each row shows *running now*, *last run …* or *not run yet*; **A–Z** sorts by name.
+  The times are kept in `run-history.json` next to the list (only what ampm2 has seen while open).
+* **Search and filter**: a search box (name, script, folder, arguments) and *All / In pm2 / Not in pm2*.
 * **Import** an ecosystem `.json`, `.config.js` / `.cjs` (evaluated with Node.js), or pm2's `dump.pm2`.
   Relative `cwd` / `script` paths are resolved against the file, as pm2 does.
 * **Export** everything or the selection as `ecosystem.json`, usable anywhere with `pm2 start ecosystem.json`.

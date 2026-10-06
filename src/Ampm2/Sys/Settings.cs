@@ -19,6 +19,7 @@ public sealed class Settings
     public bool GpuRendering { get; set; }                    // off = software rendering, the low-memory default
     public bool AutoSyncSavedList { get; set; } = true;       // copy pm2's apps into ampm2's Saved list as they change
     public bool SaveAfterStartingSaved { get; set; } = true;  // pm2 save after starting apps from the Saved list
+    public string SavedSort { get; set; } = "recent";         // Saved list order: recent (last run first) | name
     public bool CheckForUpdates { get; set; } = true;         // check GitHub in the background, banner when a release is newer
     public string DismissedUpdate { get; set; } = "";         // version whose update banner was closed
     public double Width { get; set; } = 1180;

@@ -256,6 +256,7 @@ public partial class App : Application
         Exiting = true;
         var app = (App)Current;
         AppSettings.Save();
+        Vm?.FlushRunHistory();
         app._tray?.Dispose();
         if (app._trayIcon != IntPtr.Zero) Native.DestroyIcon(app._trayIcon);
         try { _mutex?.ReleaseMutex(); } catch { }

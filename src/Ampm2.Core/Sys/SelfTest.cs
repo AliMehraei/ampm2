@@ -139,6 +139,17 @@ public static class SelfTest
             }
         }
 
+        // Saved list "last run" wording (the ordering itself is checked against a live daemon in the UI)
+        {
+            var now = new DateTime(2026, 10, 6, 16, 0, 0);
+            bool ok = RunHistory.Describe(now.AddHours(-2), false, now) == "last run today 14:00"
+                      && RunHistory.Describe(now.AddDays(-1).Date.AddHours(9), false, now) == "last run yesterday 09:00"
+                      && RunHistory.Describe(new DateTime(2026, 10, 3, 9, 5, 0), false, now) == "last run Oct 3, 09:05"
+                      && RunHistory.Describe(null, false, now) == "not run yet"
+                      && RunHistory.Describe(null, true, now) == "running now";
+            Check("run history wording", ok);
+        }
+
         // codec round trip, split across arbitrary chunk boundaries
         {
             var frame = Amp.Encode(new[] { Amp.Json("{\"a\":[1,2,3]}"), Amp.Str("id:7"), Array.Empty<byte>() });

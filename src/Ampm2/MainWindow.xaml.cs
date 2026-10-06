@@ -130,6 +130,11 @@ public partial class MainWindow : Window
         if (sender is RadioButton { Tag: string t } && _vm != null) _vm.SavedFilter = t;
     }
 
+    private void SavedSort_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string t } && _vm != null) _vm.SavedSort = t;
+    }
+
     private void ProcessList_SelectionChanged(object sender, SelectionChangedEventArgs e) => _vm.UpdateSelectionCount();
 
     private void View_Checked(object sender, RoutedEventArgs e)

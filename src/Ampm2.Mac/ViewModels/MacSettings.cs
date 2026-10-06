@@ -18,6 +18,7 @@ public sealed class MacSettings
     public bool ConfirmDestructive { get; set; } = true;
     public bool AutoSyncSavedList { get; set; } = true;
     public bool SaveAfterStartingSaved { get; set; } = true;
+    public string SavedSort { get; set; } = "recent";         // Saved list order: recent (last run first) | name
     public bool CheckForUpdates { get; set; } = true;         // check GitHub in the background, banner when a release is newer
     public string DismissedUpdate { get; set; } = "";         // version whose update banner was closed
     public double Width { get; set; } = 1180;

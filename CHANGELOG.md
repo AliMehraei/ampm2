@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-06
+
+### Added
+- **Saved list sorted by last run**, in both apps. ampm2 now remembers when each app was last seen running, and by default the Saved list shows apps running now first, then the most recently run, newest first. After a restart, the apps you ran last are at the top. Each row shows *running now*, *last run today 14:02* / *yesterday* / a date, or *not run yet* (hover for the date it was saved). A **Sort: Last run / A–Z** switch sits next to the list's buttons, and ampm2 remembers the choice.
+- The run times are kept in `run-history.json` next to the Saved list, not in it, so exports stay plain ecosystem files. Only what ampm2 sees is recorded, so it fills in from this version on.
+
 ## [1.7.0] - 2026-10-05
 
 ### Added
@@ -117,7 +123,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.8.0
 [1.7.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.7.0
 [1.6.1]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.1
 [1.6.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.0

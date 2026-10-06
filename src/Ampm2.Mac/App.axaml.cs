@@ -63,7 +63,7 @@ public partial class App : Application
             _window = new MainWindow(Vm);
             desktop.MainWindow = _window;
             _window.Show();
-            desktop.Exit += (_, _) => settings.Save();
+            desktop.Exit += (_, _) => { settings.Save(); Vm?.FlushRunHistory(); };
             if (desktop.Args?.Contains("--updated") == true) Toast("Updated", $"ampm2 was updated to {AppInfo.Version}.", ToastKind.Success);
         }
         // Dock icon clicked while the window is hidden
@@ -106,6 +106,7 @@ public partial class App : Application
     {
         Quitting = true;
         Vm?.Settings.Save();
+        Vm?.FlushRunHistory();
         if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d) d.Shutdown();
     }
 

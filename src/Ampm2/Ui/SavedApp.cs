@@ -38,7 +38,7 @@ public sealed class SavedApp : ObservableObject
     public string Pm2State
     {
         get => _pm2State;
-        set { if (Set(ref _pm2State, value)) { Raise(nameof(StateText)); Raise(nameof(StateBrush)); Raise(nameof(StateSoftBrush)); Raise(nameof(IsMissing)); } }
+        set { if (Set(ref _pm2State, value)) { Raise(nameof(StateText)); Raise(nameof(StateBrush)); Raise(nameof(StateSoftBrush)); Raise(nameof(IsMissing)); Raise(nameof(LastRunText)); } }
     }
     public bool IsMissing => _pm2State == "missing";
     public string StateText => _pm2State switch
@@ -51,6 +51,16 @@ public sealed class SavedApp : ObservableObject
     public Brush StateBrush => (Brush)Application.Current.Resources[Key];
     public Brush StateSoftBrush => (Brush)Application.Current.Resources[Key + "Soft"];
     public void ThemeChanged() { Raise(nameof(StateBrush)); Raise(nameof(StateSoftBrush)); }
+
+    /// <summary>Last time ampm2 saw this app running (see <see cref="RunHistory"/>); drives the "Last run" sort.</summary>
+    private DateTime? _lastRun;
+    public DateTime? LastRun
+    {
+        get => _lastRun;
+        set { if (Set(ref _lastRun, value)) Raise(nameof(LastRunText)); }
+    }
+    public string LastRunText => RunHistory.Describe(_lastRun, _pm2State == "online");
+    public void RaiseLastRunText() => Raise(nameof(LastRunText));
 
     private bool _isSelected;
     public bool IsSelected { get => _isSelected; set => Set(ref _isSelected, value); }

@@ -20,6 +20,9 @@ namespace Ampm2.Ui;
 public sealed partial class MainViewModel
 {
     private AppLibrary _library = AppLibrary.Load();
+    private readonly RunHistory _runs = RunHistory.Load();
+    /// <summary>Writes the run history's pending times (on exit).</summary>
+    public void FlushRunHistory() => _runs.Flush();
     public ObservableCollection<SavedApp> SavedItems { get; } = new();
 
     public ICommand ShowProcessesCommand { get; private set; } = null!;
@@ -55,7 +58,7 @@ public sealed partial class MainViewModel
         SaveDefinitionCommand = new RelayCommand(SaveDefinition, () => SelectedSaved != null && DefinitionDirty);
         RevertDefinitionCommand = new RelayCommand(() => { DefinitionText = SelectedSaved?.Json ?? ""; }, () => DefinitionDirty);
         OpenSavedFileCommand = new RelayCommand(() => OpenPathCommand.Execute(AppLibrary.FilePath));
-        SavedView = new ListCollectionView(SavedItems) { Filter = FilterSaved };
+        SavedView = new ListCollectionView(SavedItems) { Filter = FilterSaved, CustomSort = new SavedComparer(this) };
         RebuildSaved();
     }
 
@@ -69,6 +72,38 @@ public sealed partial class MainViewModel
 
     private string _savedFilter = "all";   // all | inpm2 | missing
     public string SavedFilter { get => _savedFilter; set { if (Set(ref _savedFilter, value)) RefreshSavedView(); } }
+
+    /// <summary>recent (default: running first, then by last run, newest first) | name</summary>
+    public string SavedSort
+    {
+        get => Settings.SavedSort == "name" ? "name" : "recent";
+        set
+        {
+            var v = value == "name" ? "name" : "recent";
+            if (Settings.SavedSort == v) return;
+            Settings.SavedSort = v; Settings.Save();
+            Raise(); Raise(nameof(IsSavedSortRecent)); Raise(nameof(IsSavedSortName));
+            RefreshSavedView();
+        }
+    }
+    public bool IsSavedSortRecent => SavedSort == "recent";
+    public bool IsSavedSortName => SavedSort == "name";
+
+    private sealed class SavedComparer(MainViewModel vm) : System.Collections.IComparer
+    {
+        public int Compare(object? x, object? y)
+        {
+            if (x is not SavedApp a || y is not SavedApp b) return 0;
+            if (vm.SavedSort == "recent")
+            {
+                int r = (b.Pm2State == "online").CompareTo(a.Pm2State == "online");           // running now first
+                if (r != 0) return r;
+                r = Nullable.Compare(b.LastRun, a.LastRun);                                     // newest run first, never-run last
+                if (r != 0) return r;
+            }
+            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+        }
+    }
 
     public int InPm2Count => SavedItems.Count(s => s.Pm2State is "online" or "stopped" or "errored");
     public bool SavedNoMatches => SavedItems.Count > 0 && SavedView is { Count: 0 };
@@ -246,11 +281,17 @@ public sealed partial class MainViewModel
     {
         var live = Items.GroupBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Any(i => i.IsOnline) ? "online" : g.Any(i => i.IsErrored) ? "errored" : "stopped", StringComparer.OrdinalIgnoreCase);
+        // remember what runs now, so the Saved list can put the most recently used apps first after a restart
+        if (IsConnected) _runs.Touch(live.Where(kv => kv.Value == "online").Select(kv => kv.Key));
         foreach (var s in SavedItems)
+        {
             s.Pm2State = !IsConnected ? (State == ConnState.NotRunning ? "missing" : "unknown")
                 : live.TryGetValue(s.Name, out var st) ? st : "missing";
+            s.LastRun = _runs.LastRun(s.Name);
+            s.RaiseLastRunText();   // "today" / "yesterday" move on even when the time does not
+        }
         Raise(nameof(MissingCount));
-        RefreshSavedView();   // a state change can move a row in or out of the In pm2 / Not in pm2 filter
+        RefreshSavedView();   // a state change can move a row in or out of the In pm2 / Not in pm2 filter, or re-sort it
         CommandManager.InvalidateRequerySuggested();
     }
 

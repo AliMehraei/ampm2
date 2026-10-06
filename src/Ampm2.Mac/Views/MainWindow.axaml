@@ -209,6 +209,19 @@
                                 <StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Data="{StaticResource IcExport}"/><TextBlock Text="Export all…"/></StackPanel>
                             </Button>
                             <Button Classes="icon" ToolTip.Tip="Show the saved-list file in Finder" Command="{Binding RevealSavedFileCommand}"><PathIcon Data="{StaticResource IcFolder}"/></Button>
+                            <!-- sort: last run (default) puts what ran most recently on top, e.g. what was running before a restart -->
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="6,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Sort" Classes="dim" FontSize="12" VerticalAlignment="Center"/>
+                                <Border Classes="segments">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ToggleButton Classes="seg" Content="Last run" IsChecked="{Binding IsSavedSortRecent, Mode=OneWay}" Command="{Binding SetSavedSortCommand}" CommandParameter="recent"
+                                                      AutomationProperties.Name="Sort by last run"
+                                                      ToolTip.Tip="Running apps first, then the most recently run. Shows what you ran last, even after a restart."/>
+                                        <ToggleButton Classes="seg" Content="A–Z" IsChecked="{Binding IsSavedSortName, Mode=OneWay}" Command="{Binding SetSavedSortCommand}" CommandParameter="name"
+                                                      AutomationProperties.Name="Sort by name"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </WrapPanel>
                     </StackPanel>
 
@@ -302,7 +315,7 @@
                              IsVisible="{Binding IsSavedView}" Padding="0,0,0,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid Height="54" ColumnDefinitions="*,Auto,112" Background="Transparent">
+                                <Grid Height="54" ColumnDefinitions="*,Auto,150" Background="Transparent">
                                     <Grid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Start in pm2" Command="{Binding #Root.DataContext.StartSavedCommand}" CommandParameter="{Binding}"/>
@@ -328,7 +341,7 @@
                                         <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontSize="11.5" FontWeight="SemiBold"/>
                                     </Border>
                                     <Panel Grid.Column="2">
-                                        <TextBlock Classes="rowid faint" Text="{Binding UpdatedText}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock Classes="rowid faint" Text="{Binding LastRunText}" ToolTip.Tip="{Binding UpdatedText}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         <StackPanel Classes="actions" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <!-- always present; disabled while the app runs in pm2 -->
                                             <Button Classes="icon" ToolTip.Tip="Start in pm2"

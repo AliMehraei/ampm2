@@ -34,6 +34,9 @@ public sealed class MainViewModel : ObservableObject
     private readonly DispatcherTimer _metricsTimer, _listTimer, _retryTimer, _eventDebounce, _logFlush;
     private readonly ConcurrentQueue<LogEvent> _pendingLogs = new();
     private AppLibrary _library = AppLibrary.Load();
+    private readonly RunHistory _runs = RunHistory.Load();
+    /// <summary>Writes the run history's pending times (on quit).</summary>
+    public void FlushRunHistory() => _runs.Flush();
     private bool _connecting, _visible = true, _refreshing, _refreshAgain;
 
     public MainViewModel(MacSettings settings)
@@ -74,6 +77,12 @@ public sealed class MainViewModel : ObservableObject
         SortCommand = new Command(p => SetSort(p as string ?? "id"));
         SetViewCommand = new Command(p => { ViewMode = p as string ?? "processes"; RaiseSegments(); });
         SetSavedFilterCommand = new Command(p => { _savedFilter = p as string ?? "all"; ApplySavedView(); RaiseSegments(); });
+        SetSavedSortCommand = new Command(p =>
+        {
+            Settings.SavedSort = p as string == "name" ? "name" : "recent";
+            Settings.Save();
+            ApplySavedView(); RaiseSegments();
+        });
         SetTabCommand = new Command(p => { DetailTab = p as string ?? "overview"; RaiseSegments(); });
         SetStreamCommand = new Command(p => { LogStream = p as string ?? "all"; RaiseSegments(); });
         OpenSettingsCommand = new Command(() => { AboutOpen = false; SettingsOpen = true; });
@@ -398,7 +407,8 @@ public sealed class MainViewModel : ObservableObject
     {
         foreach (var n in new[] { nameof(IsProcessView), nameof(IsSavedView), nameof(IsFilterAll), nameof(IsFilterOnline), nameof(IsFilterStopped),
                                   nameof(IsFilterErrored), nameof(IsStreamAll), nameof(IsStreamOut), nameof(IsStreamErr), nameof(LogsVisible), nameof(OverviewVisible),
-                                  nameof(IsSavedFilterAll), nameof(IsSavedFilterInPm2), nameof(IsSavedFilterMissing), nameof(SavedNoMatches) })
+                                  nameof(IsSavedFilterAll), nameof(IsSavedFilterInPm2), nameof(IsSavedFilterMissing), nameof(SavedNoMatches),
+                                  nameof(IsSavedSortRecent), nameof(IsSavedSortName) })
             Raise(n);
     }
     public bool IsProcessView => _viewMode == "processes";
@@ -520,6 +530,7 @@ public sealed class MainViewModel : ObservableObject
     public Command SortCommand { get; }
     public Command SetViewCommand { get; }
     public Command SetSavedFilterCommand { get; }
+    public Command SetSavedSortCommand { get; }
     public Command SetTabCommand { get; }
     public Command SetStreamCommand { get; }
     public Command OpenSettingsCommand { get; }
@@ -794,8 +805,14 @@ public sealed class MainViewModel : ObservableObject
     {
         var live = _all.GroupBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Any(i => i.IsOnline) ? "online" : g.Any(i => i.IsErrored) ? "errored" : "stopped", StringComparer.OrdinalIgnoreCase);
+        // remember what runs now, so the Saved list can put the most recently used apps first after a restart
+        if (IsConnected) _runs.Touch(live.Where(kv => kv.Value == "online").Select(kv => kv.Key));
         foreach (var s in SavedItems)
+        {
             s.State = !IsConnected ? (State == ConnState.NotRunning ? "missing" : "unknown") : live.TryGetValue(s.Name, out var st) ? st : "missing";
+            s.LastRun = _runs.LastRun(s.Name);
+            s.RaiseLastRunText();   // "today" / "yesterday" move on even when the time does not
+        }
         Raise(nameof(MissingCount));
         ApplySavedView();   // a state change can move a row in or out of the In pm2 / Not in pm2 filter
         Command.Requery();
@@ -827,9 +844,20 @@ public sealed class MainViewModel : ObservableObject
     }
 
     /// <summary>Syncs <see cref="ShownSaved"/> with the filter, moving rows instead of recreating them (keeps the selection).</summary>
+    /// <summary>recent (default: running first, then by last run, newest first) | name</summary>
+    public string SavedSort => Settings.SavedSort == "name" ? "name" : "recent";
+    public bool IsSavedSortRecent => SavedSort == "recent";
+    public bool IsSavedSortName => SavedSort == "name";
+
+    private IEnumerable<SavedRow> SortSaved(IEnumerable<SavedRow> rows) => SavedSort == "name"
+        ? rows.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+        : rows.OrderByDescending(s => s.State == "online")
+              .ThenByDescending(s => s.LastRun ?? DateTime.MinValue)
+              .ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase);
+
     private void ApplySavedView()
     {
-        var wanted = SavedItems.Where(SavedMatches).ToList();
+        var wanted = SortSaved(SavedItems.Where(SavedMatches)).ToList();
         for (int i = ShownSaved.Count - 1; i >= 0; i--) if (!wanted.Contains(ShownSaved[i])) ShownSaved.RemoveAt(i);
         for (int i = 0; i < wanted.Count; i++)
         {
