@@ -71,7 +71,10 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            if (_vm.HasDialog) { _vm.CloseDialog(false); e.Handled = true; }
+            // Esc in a search box with text clears it (the × does the same)
+            if (SearchBox.IsFocused && !string.IsNullOrEmpty(SearchBox.Text)) { _vm.SearchText = ""; e.Handled = true; }
+            else if (SavedSearchBox.IsFocused && !string.IsNullOrEmpty(SavedSearchBox.Text)) { _vm.SavedSearch = ""; e.Handled = true; }
+            else if (_vm.HasDialog) { _vm.CloseDialog(false); e.Handled = true; }
             else if (_vm.AboutOpen) { _vm.AboutOpen = false; e.Handled = true; }
             else if (_vm.SettingsOpen) { _vm.CloseSettingsCommand.Execute(null); e.Handled = true; }
         }

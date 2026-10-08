@@ -25,7 +25,7 @@
                     <TextBlock Classes="label" Text="Script or executable"/>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseScript_Click"/>
-                        <TextBox x:Name="ScriptBox" Classes="mono" TextChanged="Script_Changed"/>
+                        <TextBox x:Name="ScriptBox" Classes="mono clearButton" TextChanged="Script_Changed"/>
                     </DockPanel>
                 </StackPanel>
                 <Grid ColumnDefinitions="*,14,*">
@@ -41,7 +41,7 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Classes="label" Text="Node arguments"/>
-                        <TextBox x:Name="NodeArgsBox" Classes="mono" PlaceholderText="--max-old-space-size=4096"/>
+                        <TextBox x:Name="NodeArgsBox" Classes="mono clearButton" PlaceholderText="--max-old-space-size=4096"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -52,7 +52,7 @@
                     <TextBlock Classes="label" Text="Project folder (contains package.json)"/>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseProject_Click"/>
-                        <TextBox x:Name="ProjectBox" Classes="mono" LostFocus="Project_LostFocus"/>
+                        <TextBox x:Name="ProjectBox" Classes="mono clearButton" LostFocus="Project_LostFocus"/>
                     </DockPanel>
                 </StackPanel>
                 <StackPanel>
@@ -68,12 +68,12 @@
                     <TextBlock Classes="label" Text="Ecosystem file (.config.js, .json, .yml)"/>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="BrowseEco_Click"/>
-                        <TextBox x:Name="EcoBox" Classes="mono"/>
+                        <TextBox x:Name="EcoBox" Classes="mono clearButton"/>
                     </DockPanel>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Classes="label" Text="Only these apps (optional, comma separated)"/>
-                    <TextBox x:Name="OnlyBox"/>
+                    <TextBox x:Name="OnlyBox" Classes="clearButton"/>
                 </StackPanel>
             </StackPanel>
 
@@ -82,19 +82,19 @@
                 <Grid ColumnDefinitions="*,14,1.4*">
                     <StackPanel>
                         <TextBlock Classes="label" Text="Name"/>
-                        <TextBox x:Name="NameBox" TextChanged="Name_Changed"/>
+                        <TextBox x:Name="NameBox" Classes="clearButton" TextChanged="Name_Changed"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" x:Name="CwdPanel">
                         <TextBlock Classes="label" Text="Working directory"/>
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="…" Margin="6,0,0,0" Click="BrowseCwd_Click"/>
-                            <TextBox x:Name="CwdBox" Classes="mono"/>
+                            <TextBox x:Name="CwdBox" Classes="mono clearButton"/>
                         </DockPanel>
                     </StackPanel>
                 </Grid>
                 <StackPanel>
                     <TextBlock Classes="label" Text="Arguments"/>
-                    <TextBox x:Name="ArgsBox" Classes="mono"/>
+                    <TextBox x:Name="ArgsBox" Classes="mono clearButton"/>
                 </StackPanel>
                 <Grid ColumnDefinitions="*,14,*,14,*">
                     <StackPanel>
@@ -108,11 +108,11 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Classes="label" Text="Restart above memory"/>
-                        <TextBox x:Name="MaxMemBox" PlaceholderText="e.g. 500M"/>
+                        <TextBox x:Name="MaxMemBox" Classes="clearButton" PlaceholderText="e.g. 500M"/>
                     </StackPanel>
                     <StackPanel Grid.Column="4">
                         <TextBlock Classes="label" Text="Restart delay (ms)"/>
-                        <TextBox x:Name="DelayBox"/>
+                        <TextBox x:Name="DelayBox" Classes="clearButton"/>
                     </StackPanel>
                 </Grid>
                 <StackPanel>

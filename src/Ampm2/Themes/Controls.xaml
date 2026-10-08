@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:Ampm2.Ui">
 
     <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
     <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
@@ -187,6 +188,21 @@
     </Style>
 
     <!-- Square icon button; Tag = glyph -->
+    <!-- × inside a search box: right-aligned, shown only while there is text (the box sets the trigger) -->
+    <Style x:Key="SearchClearBtn" TargetType="Button" BasedOn="{StaticResource BtnGhost}">
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0,0,5,0"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+        <Setter Property="FontSize" Value="9"/>
+        <Setter Property="Content" Value="&#xE711;"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextDim}"/>
+        <Setter Property="Focusable" Value="False"/>
+    </Style>
+
     <Style x:Key="IconBtn" TargetType="Button" BasedOn="{StaticResource BtnGhost}">
         <Setter Property="Width" Value="30"/>
         <Setter Property="Height" Value="30"/>
@@ -235,6 +251,38 @@
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource TextFaint}"/></Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent}"/></Trigger>
                         <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A Field with a built-in × at the right: shown while there is text, clears the box and keeps focus there
+         (ui:TextBoxCommands.Clear). Used for every search box and the single-line fields of New process. -->
+    <Style x:Key="ClearableField" TargetType="TextBox" BasedOn="{StaticResource Field}">
+        <Setter Property="Padding" Value="9,6,28,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" SnapsToDevicePixels="True">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            <Button x:Name="clear" Style="{StaticResource SearchClearBtn}" ToolTip="Clear" AutomationProperties.Name="Clear"
+                                    Command="{x:Static ui:TextBoxCommands.Clear}" CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value=""><Setter TargetName="clear" Property="Visibility" Value="Collapsed"/></Trigger>
+                        <Trigger Property="IsReadOnly" Value="True"><Setter TargetName="clear" Property="Visibility" Value="Collapsed"/></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource TextFaint}"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent}"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="clear" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

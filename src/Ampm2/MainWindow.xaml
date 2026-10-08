@@ -328,7 +328,7 @@
                         <Grid IsEnabled="{Binding ShowList}" Visibility="{Binding IsProcessView, Converter={StaticResource BoolVis}}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <Grid>
-                            <TextBox x:Name="SearchBox" Style="{StaticResource Field}" Padding="30,6,9,6" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox x:Name="SearchBox" Style="{StaticResource ClearableField}" Padding="30,6,28,6" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" Margin="11,0,0,0" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False"/>
                             <TextBlock Text="Search name, id, script…  (Ctrl+F)" Margin="31,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False">
                                 <TextBlock.Style>
@@ -357,7 +357,7 @@
                         <Grid Margin="0,0,0,10" Visibility="{Binding IsSavedView, Converter={StaticResource BoolVis}}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Grid>
-                                <TextBox x:Name="SavedSearchBox" Style="{StaticResource Field}" Padding="30,6,9,6" Text="{Binding SavedSearch, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox x:Name="SavedSearchBox" Style="{StaticResource ClearableField}" Padding="30,6,28,6" Text="{Binding SavedSearch, UpdateSourceTrigger=PropertyChanged}"
                                          AutomationProperties.Name="Search the Saved list"/>
                                 <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" Margin="11,0,0,0" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False"/>
                                 <TextBlock Text="Search name, script, folder…  (Ctrl+F)" Margin="31,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False">

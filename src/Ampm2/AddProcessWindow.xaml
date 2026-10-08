@@ -22,7 +22,7 @@
                 <TextBlock Style="{StaticResource Label}" Text="Script or executable"/>
                 <DockPanel Margin="0,0,0,14">
                     <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseScript_Click"/>
-                    <TextBox x:Name="ScriptBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" TextChanged="Script_TextChanged"/>
+                    <TextBox x:Name="ScriptBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12" TextChanged="Script_TextChanged"/>
                 </DockPanel>
                 <Grid Margin="0,0,0,14">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -38,7 +38,7 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Style="{StaticResource Label}" Text="Node arguments"/>
-                        <TextBox x:Name="NodeArgsBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" ToolTip="e.g. --max-old-space-size=4096"/>
+                        <TextBox x:Name="NodeArgsBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12" ToolTip="e.g. --max-old-space-size=4096"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -48,7 +48,7 @@
                 <TextBlock Style="{StaticResource Label}" Text="Project folder (contains package.json)"/>
                 <DockPanel Margin="0,0,0,14">
                     <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseProject_Click"/>
-                    <TextBox x:Name="ProjectBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" LostFocus="Project_LostFocus"/>
+                    <TextBox x:Name="ProjectBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12" LostFocus="Project_LostFocus"/>
                 </DockPanel>
                 <TextBlock Style="{StaticResource Label}" Text="npm script"/>
                 <ComboBox x:Name="NpmScriptBox" Margin="0,0,0,4" IsEditable="False"/>
@@ -61,10 +61,10 @@
                 <TextBlock Style="{StaticResource Label}" Text="Ecosystem file (.config.js, .json, .yml)"/>
                 <DockPanel Margin="0,0,0,14">
                     <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Browse…" Margin="8,0,0,0" Click="BrowseEco_Click"/>
-                    <TextBox x:Name="EcoBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                    <TextBox x:Name="EcoBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
                 </DockPanel>
                 <TextBlock Style="{StaticResource Label}" Text="Only these apps (optional, comma separated)"/>
-                <TextBox x:Name="OnlyBox" Style="{StaticResource Field}" Margin="0,0,0,4"/>
+                <TextBox x:Name="OnlyBox" Style="{StaticResource ClearableField}" Margin="0,0,0,4"/>
                 <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,14" Text="pm2 start &lt;file&gt; --only &lt;apps&gt;"/>
             </StackPanel>
 
@@ -74,19 +74,19 @@
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Style="{StaticResource Label}" Text="Name"/>
-                        <TextBox x:Name="NameBox" Style="{StaticResource Field}"/>
+                        <TextBox x:Name="NameBox" Style="{StaticResource ClearableField}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" x:Name="CwdPanel">
                         <TextBlock Style="{StaticResource Label}" Text="Working directory"/>
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE8B7;" Margin="4,0,0,0" Click="BrowseCwd_Click" ToolTip="Browse"/>
-                            <TextBox x:Name="CwdBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
+                            <TextBox x:Name="CwdBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12"/>
                         </DockPanel>
                     </StackPanel>
                 </Grid>
 
                 <TextBlock Style="{StaticResource Label}" Text="Arguments"/>
-                <TextBox x:Name="ArgsBox" Style="{StaticResource Field}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0,0,0,14"/>
+                <TextBox x:Name="ArgsBox" Style="{StaticResource ClearableField}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0,0,0,14"/>
 
                 <Grid Margin="0,0,0,14">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/><ColumnDefinition Width="14"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -101,11 +101,11 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Style="{StaticResource Label}" Text="Restart above memory"/>
-                        <TextBox x:Name="MaxMemBox" Style="{StaticResource Field}" ToolTip="e.g. 500M or 2G; empty = never"/>
+                        <TextBox x:Name="MaxMemBox" Style="{StaticResource ClearableField}" ToolTip="e.g. 500M or 2G; empty = never"/>
                     </StackPanel>
                     <StackPanel Grid.Column="4">
                         <TextBlock Style="{StaticResource Label}" Text="Restart delay (ms)"/>
-                        <TextBox x:Name="DelayBox" Style="{StaticResource Field}" ToolTip="Wait before restarting a crashed app"/>
+                        <TextBox x:Name="DelayBox" Style="{StaticResource ClearableField}" ToolTip="Wait before restarting a crashed app"/>
                     </StackPanel>
                 </Grid>
 

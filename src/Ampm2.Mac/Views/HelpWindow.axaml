@@ -14,7 +14,7 @@
                         <Image Source="/Assets/icon-64.png" Width="26" Height="26"/>
                         <TextBlock Text="ampm2 Help" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBox x:Name="SearchBox" PlaceholderText="Search help">
+                    <TextBox x:Name="SearchBox" Classes="clearButton" PlaceholderText="Search help">
                         <TextBox.InnerLeftContent><PathIcon Data="{StaticResource IcSearch}" Width="13" Height="13" Margin="9,0,0,0" Foreground="{DynamicResource TextFaint}"/></TextBox.InnerLeftContent>
                     </TextBox>
                 </StackPanel>

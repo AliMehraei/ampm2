@@ -30,6 +30,7 @@ public partial class App : Application
         base.OnStartup(e);
         var args = e.Args;
         Updater.Target = UpdateTarget.WindowsInstaller;
+        TextBoxCommands.Register();   // the × in every clearable text box
         DispatcherUnhandledException += (_, ex) =>
         {
             LogCrash(ex.Exception);

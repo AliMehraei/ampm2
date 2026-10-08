@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-08
+
+### Added
+- **Clear buttons in text boxes**, in both apps. Every search box (Processes, Saved list, Help) and the single-line fields of New process show an **×** at their right end while they hold text; it clears the box and keeps the cursor there. The multi-line environment box and read-only fields have none.
+- **Esc** now clears the Processes and Saved list search boxes on macOS too, as it already did on Windows.
+
+### Fixed
+- **macOS:** ampm2 could close when a search or filter hid the selected process. The details pane's CPU and memory charts were drawn with no data, which Avalonia does not survive; they now fall back to an empty chart.
+
 ## [1.8.0] - 2026-10-06
 
 ### Added
@@ -123,7 +132,8 @@ First version, for Windows only. It was not published on GitHub.
 - Talks to pm2's protocol directly: no `pm2 jlist` polling, software rendering by default, and no sampling while hidden.
 - Destructive confirmations open with Cancel focused, and dialogs never steal focus from other apps.
 
-[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/AliMehraei/ampm2/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/AliMehraei/ampm2/releases/tag/v1.8.1
 [1.8.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.8.0
 [1.7.0]: https://github.com/AliMehraei/ampm2/releases/tag/v1.7.0
 [1.6.1]: https://github.com/AliMehraei/ampm2/releases/tag/v1.6.1

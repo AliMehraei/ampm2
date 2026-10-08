@@ -9,6 +9,15 @@ using Avalonia.Media;
 namespace Ampm2.Mac.ViewModels;
 
 /// <summary>Status colours; the soft variants are translucent so they read on dark and light.</summary>
+/// <summary>
+/// An empty sparkline. The details pane's Polygons fall back to it when no process is selected (a search or
+/// filter just hid the selected one): Avalonia's Polygon throws while rendering null Points, which closed the app.
+/// </summary>
+public static class Sparkline
+{
+    public static Points Empty { get; } = new();
+}
+
 public static class StatusBrushes
 {
     public static readonly IBrush Online = new SolidColorBrush(Color.Parse("#22B573"));

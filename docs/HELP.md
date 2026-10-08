@@ -71,8 +71,8 @@ ampm2 talks to the pm2 daemon directly over pm2's own connection, so it stays li
 
 ### Finding processes
 
-- **Search** *(Windows)*: Type part of a name, an id or a script path. Press Ctrl+F to jump to the search box and Esc to clear it.
-- **Search** *(macOS)*: Type part of a name, an id or a script path.
+- **Search** *(Windows)*: Type part of a name, an id or a script path. Press Ctrl+F to jump to the search box; the × at its right end, or Esc, clears it.
+- **Search** *(macOS)*: Type part of a name, an id or a script path. The × at the right end of the box, or Esc, clears it.
 - **Filters**: All, Online, Stopped or Errored.
 - **Sort**: Click a column header to sort by it. Click it again to reverse the order. CPU and memory sort highest first.
 
@@ -153,8 +153,8 @@ pm2 keeps its list in dump.pm2, but that file is easy to lose: pm2 does not star
 
 ### Finding an app
 
-- **Search** *(Windows)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case. Esc clears it.
-- **Search** *(macOS)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case.
+- **Search** *(Windows)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case. The × at its right end, or Esc, clears it.
+- **Search** *(macOS)*: The box above the list matches the name, script, working folder and arguments of each saved app, ignoring case. The × at its right end, or Esc, clears it.
 - **Ctrl+F** *(Windows)*: In the Saved list view, Ctrl+F jumps to its search box.
 - **All / In pm2 / Not in pm2**: Shows every saved app, only the ones pm2 runs now, or only the ones pm2 does not have. The numbers are the counts. Start missing and Export all always act on the whole list, whatever the filter shows.
 - **Sort: Last run**: The default. Apps running now come first, then the most recently run, newest first. After a restart, the apps you ran last are at the top, so you can see what to start again. Each row shows "running now", "last run …" or "not run yet"; hover it for the date the app was saved.

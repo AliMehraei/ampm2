@@ -154,7 +154,8 @@
 
                         <!-- processes: search + filters -->
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsProcessView}" IsEnabled="{Binding IsConnected}">
-                            <TextBox PlaceholderText="Search name, id, script…" Text="{Binding SearchText}" Width="300" HorizontalAlignment="Left">
+                            <TextBox x:Name="SearchBox" Classes="clearButton" PlaceholderText="Search name, id, script…" Text="{Binding SearchText}" Width="300" HorizontalAlignment="Left"
+                                     AutomationProperties.Name="Search processes">
                                 <TextBox.InnerLeftContent><PathIcon Data="{StaticResource IcSearch}" Width="13" Height="13" Margin="9,0,0,0" Foreground="{DynamicResource TextFaint}"/></TextBox.InnerLeftContent>
                             </TextBox>
                             <Border Grid.Column="1" Classes="segments" Margin="12,0,0,0">
@@ -171,7 +172,7 @@
 
                         <!-- saved list: search + filters (same look as the Processes view) -->
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsSavedView}">
-                            <TextBox x:Name="SavedSearchBox" PlaceholderText="Search name, script, folder…" Text="{Binding SavedSearch}" Width="300" HorizontalAlignment="Left"
+                            <TextBox x:Name="SavedSearchBox" Classes="clearButton" PlaceholderText="Search name, script, folder…" Text="{Binding SavedSearch}" Width="300" HorizontalAlignment="Left"
                                      AutomationProperties.Name="Search the Saved list">
                                 <TextBox.InnerLeftContent><PathIcon Data="{StaticResource IcSearch}" Width="13" Height="13" Margin="9,0,0,0" Foreground="{DynamicResource TextFaint}"/></TextBox.InnerLeftContent>
                             </TextBox>
@@ -508,7 +509,7 @@
                                             </DockPanel>
                                             <Viewbox Stretch="Fill" Height="44" Margin="0,8,0,0">
                                                 <Canvas Width="360" Height="56">
-                                                    <Polygon Points="{Binding CpuLine}" Fill="{DynamicResource AccentSoft}" Stroke="{DynamicResource Accent}" StrokeThickness="2.5"/>
+                                                    <Polygon Points="{Binding CpuLine, FallbackValue={x:Static vm:Sparkline.Empty}, TargetNullValue={x:Static vm:Sparkline.Empty}}" Fill="{DynamicResource AccentSoft}" Stroke="{DynamicResource Accent}" StrokeThickness="2.5"/>
                                                 </Canvas>
                                             </Viewbox>
                                         </StackPanel>
@@ -521,7 +522,7 @@
                                             </DockPanel>
                                             <Viewbox Stretch="Fill" Height="44" Margin="0,8,0,0">
                                                 <Canvas Width="360" Height="56">
-                                                    <Polygon Points="{Binding MemLine}" Fill="{x:Static vm:StatusBrushes.OnlineSoft}" Stroke="{x:Static vm:StatusBrushes.Online}" StrokeThickness="2.5"/>
+                                                    <Polygon Points="{Binding MemLine, FallbackValue={x:Static vm:Sparkline.Empty}, TargetNullValue={x:Static vm:Sparkline.Empty}}" Fill="{x:Static vm:StatusBrushes.OnlineSoft}" Stroke="{x:Static vm:StatusBrushes.Online}" StrokeThickness="2.5"/>
                                                 </Canvas>
                                             </Viewbox>
                                         </StackPanel>
